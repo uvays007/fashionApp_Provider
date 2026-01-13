@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "931859519492",
+    "project_id": "fitmax-186dc",
+    "storage_bucket": "fitmax-186dc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:931859519492:android:c823db22102a9c1231bd51",
+        "android_client_info": {
+          "package_name": "com.example.comercial_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDUrg2HblHh31Q--iNRqR7icps_KReKss4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
