@@ -1,7 +1,9 @@
+import 'package:comercial_app/providers/login_provider.dart';
 import 'package:comercial_app/screens/Authentications_screens/signup.dart';
 import 'package:comercial_app/screens/nav_screen/nav.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
+import 'package:provider/provider.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -13,90 +15,10 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  String? emailError;
-  String? passwordError;
-  bool loading = false;
-  bool haserror = false;
-  bool showpassword = false;
-
-  Future<void> login() async {
-    haserror = false;
-    setState(() {
-      emailError = null;
-      passwordError = null;
-    });
-
-    if (_emailController.text.trim().isEmpty) {
-      setState(() => emailError = "Please enter your email");
-      haserror = true;
-    }
-    if (_passwordController.text.trim().isEmpty) {
-      setState(() => passwordError = "Please enter your password");
-      haserror = true;
-    }
-    if (haserror) return;
-
-    setState(() => loading = true);
-
-    try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
-
-      if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const Nav()),
-      );
-    } on FirebaseAuthException catch (e) {
-      switch (e.code) {
-        case 'email-already-in-use':
-          setState(() => emailError = "This email is already registered");
-          break;
-
-        case 'invalid-email':
-          setState(() => emailError = "Invalid email address");
-          break;
-
-        case 'weak-password':
-          setState(() => passwordError = "Password is too weak");
-          break;
-        case 'user-not-found':
-          setState(() => emailError = "No account found for this email");
-          break;
-        case 'invalid-credential':
-          setState(() => passwordError = "Password is incorrect");
-          break;
-
-        case 'operation-not-allowed':
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Email/password sign-up not enabled."),
-            ),
-          );
-          break;
-
-        case 'too-many-requests':
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Too many attempts. Try again later."),
-            ),
-          );
-          break;
-
-        default:
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Sign-up failed. Please try again.")),
-          );
-      }
-    } finally {
-      if (mounted) setState(() => loading = false);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<LoginProvider>();
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
@@ -145,13 +67,11 @@ class _LoginState extends State<Login> {
 
                 TextField(
                   onChanged: (_) {
-                    if (emailError != null) {
-                      setState(() => emailError = null);
-                    }
+                    provider.clearEmailError();
                   },
                   controller: _emailController,
                   decoration: InputDecoration(
-                    errorText: emailError,
+                    errorText: provider.emailError,
                     contentPadding: const EdgeInsets.fromLTRB(15, 10, 10, 10),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -167,29 +87,23 @@ class _LoginState extends State<Login> {
 
                 TextField(
                   controller: _passwordController,
-                  obscureText: !showpassword,
+                  obscureText: provider.showPassword,
                   decoration: InputDecoration(
                     suffixIcon: GestureDetector(
                       onTapDown: (_) {
-                        setState(() {
-                          showpassword = true;
-                        });
+                        context.read<LoginProvider>().togglePassword(true);
                       },
                       onTapUp: (_) {
-                        setState(() {
-                          showpassword = false;
-                        });
+                        context.read<LoginProvider>().togglePassword(false);
                       },
                       onTapCancel: () {
-                        setState(() {
-                          showpassword = false;
-                        });
+                        context.read<LoginProvider>().togglePassword(false);
                       },
-                      child: showpassword
+                      child: provider.showPassword
                           ? Icon(Icons.visibility)
                           : Icon(Icons.visibility_off),
                     ),
-                    errorText: passwordError,
+                    errorText: provider.passwordError,
                     contentPadding: const EdgeInsets.fromLTRB(15, 10, 10, 10),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -211,15 +125,35 @@ class _LoginState extends State<Login> {
                       ),
                       foregroundColor: Colors.white,
                       backgroundColor: const Color(0xFFC19375),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
-                    onPressed: loading ? null : login,
-                    child: loading
-                        ? SizedBox(
+                    onPressed: provider.loading
+                        ? null
+                        : () async {
+                            final success = await context
+                                .read<LoginProvider>()
+                                .login(
+                                  email: _emailController.text,
+                                  password: _passwordController.text,
+                                );
+
+                            if (success && context.mounted) {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(builder: (_) => const Nav()),
+                              );
+                            }
+                          },
+                    child: provider.loading
+                        ? const SizedBox(
                             height: 20,
                             width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
                           )
-                        : const Text('Log In'),
+                        : const Text('Log in', style: TextStyle(fontSize: 16)),
                   ),
                 ),
 

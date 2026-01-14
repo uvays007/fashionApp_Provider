@@ -1,3 +1,4 @@
+import 'package:comercial_app/providers/login_provider.dart';
 import 'package:comercial_app/providers/signup_provider.dart';
 import 'package:comercial_app/screens/onboarding_screen/onboarding.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -12,7 +13,10 @@ Future<void> main() async {
 
   runApp(
     MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => SignupProvider())],
+      providers: [
+        ChangeNotifierProvider(create: (_) => SignupProvider()),
+        ChangeNotifierProvider(create: (_) => LoginProvider()),
+      ],
       child: ScreenUtilInit(
         designSize: const Size(390, 844),
         minTextAdapt: true,
