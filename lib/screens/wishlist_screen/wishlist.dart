@@ -1,21 +1,15 @@
-import 'package:comercial_app/services/cart_service.dart';
-import 'package:comercial_app/services/wishlist_service.dart';
 import 'package:flutter/material.dart';
-import 'package:comercial_app/screens/global_screen/global.dart';
+import 'package:provider/provider.dart';
+import 'package:comercial_app/providers/wishlist_provider.dart';
+import 'package:comercial_app/services/cart_service.dart';
 
-class WishlistPage extends StatefulWidget {
+class WishlistPage extends StatelessWidget {
   const WishlistPage({super.key});
 
   @override
-  State<WishlistPage> createState() => _WishlistPageState();
-}
-
-final wishlist = WishlistService();
-final carts = CartlistService();
-
-class _WishlistPageState extends State<WishlistPage> {
-  @override
   Widget build(BuildContext context) {
+    final carts = CartlistService();
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -32,28 +26,33 @@ class _WishlistPageState extends State<WishlistPage> {
         elevation: 0.5,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
-          onPressed: () => Navigator.pop(context, true),
+          onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: StreamBuilder<List<Map<String, dynamic>>>(
-        stream: wishlist.getWishlist(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return Center(child: CircularProgressIndicator());
-          }
-          final wishlistItems = snapshot.data!;
-          if (wishlistItems.isEmpty) {
-            return Center(child: Text("Wishlist is empty"));
-          }
-          return ListView.builder(
-            padding: const EdgeInsets.all(20),
-            itemCount: wishlistItems.length,
-            itemBuilder: (context, index) {
-              final wishlistItem = wishlistItems[index];
 
-              final originalIndex = wishlistItem['index'];
+      body: Consumer<WishlistProvider>(
+        builder: (context, wishlistProvider, _) {
+          return StreamBuilder<List<Map<String, dynamic>>>(
+            stream: wishlistProvider.wishlistStream(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-              return _buildWishlistItem(wishlistItem, originalIndex);
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(child: Text("Wishlist is empty"));
+              }
+
+              final wishlistItems = snapshot.data!;
+
+              return ListView.builder(
+                padding: const EdgeInsets.all(20),
+                itemCount: wishlistItems.length,
+                itemBuilder: (context, index) {
+                  final product = wishlistItems[index];
+                  return _buildWishlistItem(context, product, carts);
+                },
+              );
             },
           );
         },
@@ -61,7 +60,11 @@ class _WishlistPageState extends State<WishlistPage> {
     );
   }
 
-  Widget _buildWishlistItem(Map<String, dynamic> product, int originalIndex) {
+  Widget _buildWishlistItem(
+    BuildContext context,
+    Map<String, dynamic> product,
+    CartlistService carts,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(12),
@@ -108,12 +111,16 @@ class _WishlistPageState extends State<WishlistPage> {
                   ),
                 ),
                 const SizedBox(height: 8),
+
                 Row(
                   children: [
+                    /// ADD TO CART
                     SizedBox(
                       height: 36,
                       child: ElevatedButton(
                         onPressed: () {
+                          carts.addToCart(product);
+
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text("${product['name']} added to cart"),
@@ -126,45 +133,34 @@ class _WishlistPageState extends State<WishlistPage> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
                         ),
                         child: const Text(
                           "Add to Cart",
-                          style: TextStyle(
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                            color: Colors.white,
-                          ),
+                          style: TextStyle(color: Colors.white),
                         ),
                       ),
                     ),
-                    SizedBox(width: 35),
+
+                    const SizedBox(width: 20),
+
+                    /// REMOVE FROM WISHLIST
                     SizedBox(
                       height: 36,
                       child: ElevatedButton(
                         onPressed: () {
-                          setState(() {
-                            wishlist.removeFromWishlist(product["id"]);
-
-                            isLiked[originalIndex] = false;
-                          });
+                          context.read<WishlistProvider>().removeFromWishlist(
+                            product['id'],
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFC19375),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
                         ),
                         child: const Text(
                           "Remove",
-                          style: TextStyle(
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                            color: Colors.white,
-                          ),
+                          style: TextStyle(color: Colors.white),
                         ),
                       ),
                     ),

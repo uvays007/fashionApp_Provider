@@ -1,6 +1,7 @@
 import 'package:comercial_app/providers/login_provider.dart';
 import 'package:comercial_app/providers/signup_provider.dart';
-import 'package:comercial_app/screens/onboarding_screen/onboarding.dart';
+import 'package:comercial_app/providers/wishList_provider.dart';
+import 'package:comercial_app/screens/nav_screen/nav.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -16,6 +17,7 @@ Future<void> main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => SignupProvider()),
         ChangeNotifierProvider(create: (_) => LoginProvider()),
+        ChangeNotifierProvider(create: (_) => WishlistProvider()),
       ],
       child: ScreenUtilInit(
         designSize: const Size(390, 844),
@@ -32,6 +34,6 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(debugShowCheckedModeBanner: false, home: Onboarding());
+    return MaterialApp(debugShowCheckedModeBanner: false, home: Nav());
   }
 }

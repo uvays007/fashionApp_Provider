@@ -1,11 +1,12 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:comercial_app/providers/wishList_provider.dart';
 import 'package:comercial_app/screens/AllProducts_screen/allproducts.dart';
 import 'package:comercial_app/screens/global_screen/global.dart';
 import 'package:comercial_app/screens/product_screen/product.dart';
-import 'package:comercial_app/services/wishlist_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -43,7 +44,6 @@ final CarouselSliderController controller = CarouselSliderController();
 final searchController = TextEditingController();
 List<Map<String, dynamic>> filteredproducts = [];
 List<Map<String, dynamic>> products = [];
-final wishlists = WishlistService();
 
 class Home extends StatefulWidget {
   final VoidCallback? goToCart;
@@ -62,17 +62,28 @@ class _HomeState extends State<Home> {
   }
 
   Future<void> loadProducts() async {
+    final wishlistProvider = context.read<WishlistProvider>();
+
     try {
       final snapshot = await FirebaseFirestore.instance
           .collection("products")
           .get();
 
-      final products = snapshot.docs.map((doc) => doc.data()).toList();
-      offlineproducts.addAll(products);
+      final fetchedProducts = snapshot.docs.map((doc) {
+        final data = doc.data();
+        data['id'] = doc.id;
+        return data;
+      }).toList();
+
+      if (!mounted) return;
 
       setState(() {
-        filteredproducts = List.from(products);
+        filteredproducts = fetchedProducts;
       });
+
+      for (var product in fetchedProducts) {
+        wishlistProvider.loadLikeStatus(product['id']);
+      }
     } catch (e) {
       debugPrint("Error loading products: $e");
     }
@@ -440,120 +451,104 @@ class _HomeState extends State<Home> {
                       Positioned(
                         right: 10,
                         top: 5,
-                        child: GestureDetector(
-                          onTap: () async {
-                            if (!isLiked[index]) {
-                              final bool?
-                              confirm = await showModalBottomSheet<bool>(
-                                context: context,
-                                isScrollControlled: false,
-                                shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.vertical(
-                                    top: Radius.circular(20),
-                                  ),
-                                ),
-                                builder: (context) {
-                                  return Padding(
-                                    padding: const EdgeInsets.all(20),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Text(
-                                          "Add to Wishlist?",
-                                          style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
+                        child: Consumer<WishlistProvider>(
+                          builder: (context, wishlist, _) {
+                            final productId = product['id'];
+                            final liked = wishlist.isLiked(productId);
 
-                                        const SizedBox(height: 10),
+                            return GestureDetector(
+                              onTap: () async {
+                                final wishlist = context
+                                    .read<WishlistProvider>();
 
-                                        const Text(
-                                          "Do you really want to add this item to your wishlist?",
-                                          textAlign: TextAlign.center,
-                                        ),
-
-                                        const SizedBox(height: 20),
-
-                                        Row(
+                                if (!liked) {
+                                  final bool?
+                                  confirm = await showModalBottomSheet<bool>(
+                                    context: context,
+                                    shape: const RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.vertical(
+                                        top: Radius.circular(20),
+                                      ),
+                                    ),
+                                    builder: (_) {
+                                      return Padding(
+                                        padding: const EdgeInsets.all(20),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            Expanded(
-                                              child: OutlinedButton(
-                                                onPressed: () => Navigator.pop(
-                                                  context,
-                                                  false,
-                                                ),
-                                                child: const Text("Cancel"),
+                                            const Text(
+                                              "Add to Wishlist?",
+                                              style: TextStyle(
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.bold,
                                               ),
                                             ),
-                                            const SizedBox(width: 12),
-                                            Expanded(
-                                              child: ElevatedButton(
-                                                onPressed: () => Navigator.pop(
-                                                  context,
-                                                  true,
-                                                ),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor: const Color(
-                                                    0xFFC19375,
+                                            const SizedBox(height: 10),
+                                            const Text(
+                                              "Do you really want to add this item to your wishlist?",
+                                              textAlign: TextAlign.center,
+                                            ),
+                                            const SizedBox(height: 20),
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  child: OutlinedButton(
+                                                    onPressed: () =>
+                                                        Navigator.pop(
+                                                          context,
+                                                          false,
+                                                        ),
+                                                    child: const Text("Cancel"),
                                                   ),
                                                 ),
-                                                child: const Text(
-                                                  "Yes",
-                                                  style: TextStyle(
-                                                    color: Colors.white,
+                                                const SizedBox(width: 12),
+                                                Expanded(
+                                                  child: ElevatedButton(
+                                                    onPressed: () =>
+                                                        Navigator.pop(
+                                                          context,
+                                                          true,
+                                                        ),
+                                                    child: const Text("Yes"),
                                                   ),
                                                 ),
-                                              ),
+                                              ],
                                             ),
                                           ],
                                         ),
+                                      );
+                                    },
+                                  );
 
-                                        const SizedBox(height: 10),
-                                      ],
+                                  if (confirm == true) {
+                                    await wishlist.toggleLike(product);
+                                  }
+                                } else {
+                                  wishlist.toggleLike(product);
+                                }
+                              },
+                              child: AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 300),
+                                transitionBuilder: (child, animation) {
+                                  return ScaleTransition(
+                                    scale: CurvedAnimation(
+                                      parent: animation,
+                                      curve: Curves.elasticOut,
                                     ),
+                                    child: child,
                                   );
                                 },
-                              );
-
-                              if (confirm == true) {
-                                setState(() {
-                                  wishlists.addToWishlist(product, index);
-                                  isLiked[index] = true;
-                                });
-                              }
-                            } else {
-                              try {
-                                setState(() {
-                                  wishlists.removeByIndex(index);
-                                  isLiked[index] = false;
-                                });
-                              } catch (e) {
-                                debugPrint("Error: $e");
-                              }
-                            }
-                          },
-
-                          child: AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 300),
-                            transitionBuilder: (child, animation) {
-                              return ScaleTransition(
-                                scale: CurvedAnimation(
-                                  parent: animation,
-                                  curve: Curves.elasticOut,
+                                child: Icon(
+                                  liked
+                                      ? Icons.favorite
+                                      : Icons.favorite_border,
+                                  key: ValueKey<bool>(liked),
+                                  color: liked ? Colors.redAccent : null,
+                                  size: liked ? 28 : 26,
                                 ),
-                                child: child,
-                              );
-                            },
-                            child: Icon(
-                              isLiked[index]
-                                  ? Icons.favorite
-                                  : Icons.favorite_border,
-                              key: ValueKey<bool>(isLiked[index]),
-                              color: isLiked[index] ? Colors.redAccent : null,
-                              size: isLiked[index] ? 28 : 26,
-                            ),
-                          ),
+                              ),
+                            );
+                          },
                         ),
                       ),
                     ],
