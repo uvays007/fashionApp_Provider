@@ -1,7 +1,11 @@
 import 'package:comercial_app/providers/login_provider.dart';
 import 'package:comercial_app/providers/signup_provider.dart';
-import 'package:comercial_app/providers/wishList_provider.dart';
+import 'package:comercial_app/providers/wishlist_provider.dart';
+import 'package:comercial_app/screens/Authentications_screens/login.dart';
 import 'package:comercial_app/screens/nav_screen/nav.dart';
+import 'package:comercial_app/screens/onboarding_screen/onboarding.dart';
+import 'package:comercial_app/screens/order_screen/order.dart';
+import 'package:comercial_app/screens/wishlist_screen/wishlist.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -34,6 +38,29 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(debugShowCheckedModeBanner: false, home: Nav());
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'FITMAX',
+      theme: ThemeData(
+        primaryColor: const Color(0xFFC19375),
+        scaffoldBackgroundColor: Colors.white,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFFC19375),
+          elevation: 0.5,
+        ),
+      ),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const Onboarding(),
+        '/login': (context) => const Login(),
+        '/home': (context) => const Nav(),
+        '/wishlist': (context) => const WishlistPage(),
+        '/orders': (context) => const OrderPage(),
+      },
+      // Optional: Handle unknown routes
+      onGenerateRoute: (settings) {
+        return MaterialPageRoute(builder: (context) => const Nav());
+      },
+    );
   }
 }

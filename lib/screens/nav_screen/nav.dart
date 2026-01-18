@@ -1,12 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:comercial_app/screens/Authentications_screens/login.dart';
 import 'package:comercial_app/screens/global_screen/global.dart';
-import 'package:comercial_app/screens/nav_screen/cart.dart';
-import 'package:comercial_app/screens/nav_screen/home.dart';
-import 'package:comercial_app/screens/nav_screen/profile.dart';
-import 'package:comercial_app/screens/nav_screen/tryon.dart';
-import 'package:comercial_app/screens/order_screen/order.dart';
-import 'package:comercial_app/screens/wishlist_screen/wishlist.dart';
+import 'package:comercial_app/screens/nav_screen/home.dart'; // Import actual Home
+import 'package:comercial_app/screens/nav_screen/tryon.dart'; // Import actual Tryon
+import 'package:comercial_app/screens/nav_screen/cart.dart'; // Import actual Cart
+import 'package:comercial_app/screens/nav_screen/profile.dart'; // Import actual Profile
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -30,6 +27,7 @@ class _NavState extends State<Nav> with SingleTickerProviderStateMixin {
     'assets/icons/bottm_nav/shopping_cart_30dp_000000_FILL0_wght400_GRAD0_opsz24.svg',
     'assets/icons/bottm_nav/person_30dp_000000_FILL0_wght400_GRAD0_opsz24.svg',
   ];
+
   void goToCart() {
     setState(() => selectedIndex = 2);
   }
@@ -71,11 +69,12 @@ class _NavState extends State<Nav> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final List<Widget> pages = [
-      Home(goToCart: goToCart),
-      Tryon(),
-      Cart(),
-      Profile(),
+      Home(goToCart: goToCart), // Your actual Home screen
+      Tryon(), // Your actual Tryon screen
+      Cart(), // Your actual Cart screen
+      Profile(), // Your actual Profile screen
     ];
+
     return Scaffold(
       drawer: buildDrawer(context),
       appBar: AppBar(
@@ -95,7 +94,6 @@ class _NavState extends State<Nav> with SingleTickerProviderStateMixin {
             onPressed: toggleNotifications,
             icon: const Icon(Icons.notifications_none, color: Colors.black87),
           ),
-
           Padding(
             padding: const EdgeInsets.only(right: 12.0),
             child: GestureDetector(
@@ -116,12 +114,11 @@ class _NavState extends State<Nav> with SingleTickerProviderStateMixin {
                         ),
                       ),
                     )
-                  : SizedBox.shrink(),
+                  : const SizedBox.shrink(),
             ),
           ),
         ],
       ),
-
       body: Stack(
         children: [
           AnimatedSwitcher(
@@ -129,13 +126,11 @@ class _NavState extends State<Nav> with SingleTickerProviderStateMixin {
             duration: const Duration(milliseconds: 300),
             child: pages[selectedIndex],
           ),
-
           if (showNotifications)
             GestureDetector(
               onTap: toggleNotifications,
               child: Container(color: Colors.transparent),
             ),
-
           Positioned(
             right: 10,
             top: kToolbarHeight + 5,
@@ -178,7 +173,6 @@ class _NavState extends State<Nav> with SingleTickerProviderStateMixin {
                               fontSize: 14,
                             ),
                           ),
-
                           trailing: Text(
                             n["time"].toString(),
                             style: const TextStyle(
@@ -196,7 +190,6 @@ class _NavState extends State<Nav> with SingleTickerProviderStateMixin {
           ),
         ],
       ),
-
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(color: Color(0xFFC19375)),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -219,7 +212,7 @@ class _NavState extends State<Nav> with SingleTickerProviderStateMixin {
                     icons[index],
                     height: 24,
                     width: 24,
-                    colorFilter: ColorFilter.mode(
+                    colorFilter: const ColorFilter.mode(
                       Colors.white,
                       BlendMode.srcIn,
                     ),
@@ -256,12 +249,12 @@ class _NavState extends State<Nav> with SingleTickerProviderStateMixin {
                         future: user(),
                         builder: (context, snapshot) {
                           if (!snapshot.hasData) {
-                            return Text('Loading...');
+                            return const Text('Loading...');
                           }
                           var data = snapshot.data!;
                           return Text(
                             data['name'],
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 18,
                               color: Colors.black87,
@@ -273,12 +266,12 @@ class _NavState extends State<Nav> with SingleTickerProviderStateMixin {
                         future: user(),
                         builder: (context, snapshot) {
                           if (!snapshot.hasData) {
-                            return Text('Loading...');
+                            return const Text('Loading...');
                           }
                           var data = snapshot.data;
                           return Text(
                             data!['email'],
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 13,
                               color: Colors.black87,
                             ),
@@ -299,18 +292,12 @@ class _NavState extends State<Nav> with SingleTickerProviderStateMixin {
           buildDrawerItem(
             icon: Icons.shopping_cart_checkout,
             text: "Orders",
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const OrderPage()),
-            ),
+            onTap: () => Navigator.pushNamed(context, '/orders'),
           ),
           buildDrawerItem(
             icon: Icons.favorite_outline,
             text: "Wishlist",
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const WishlistPage()),
-            ),
+            onTap: () => Navigator.pushNamed(context, '/wishlist'),
           ),
           buildDrawerItem(
             icon: Icons.settings_outlined,
@@ -319,16 +306,17 @@ class _NavState extends State<Nav> with SingleTickerProviderStateMixin {
           ),
           buildDrawerItem(icon: Icons.help_outline, text: "Help", onTap: () {}),
           const Spacer(),
-          Divider(thickness: 1, color: Colors.grey.shade400),
+          const Divider(thickness: 1, color: Colors.grey),
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.redAccent),
             title: const Text(
               "Logout",
               style: TextStyle(color: Colors.redAccent),
             ),
-            onTap: () => Navigator.push(
+            onTap: () => Navigator.pushNamedAndRemoveUntil(
               context,
-              MaterialPageRoute(builder: (context) => Login()),
+              '/login',
+              (route) => false,
             ),
           ),
         ],
@@ -356,3 +344,9 @@ class _NavState extends State<Nav> with SingleTickerProviderStateMixin {
 
   void _navigateTo(int index) => setState(() => selectedIndex = index);
 }
+
+// Remove these dummy classes! They were just for demonstration
+// class Home extends StatelessWidget { ... }
+// class Tryon extends StatelessWidget { ... }
+// class Cart extends StatelessWidget { ... }
+// class Profile extends StatelessWidget { ... }
