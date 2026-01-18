@@ -18,7 +18,6 @@ class _ProductState extends State<Product> {
   Color selectedColor = Colors.black;
   int quantity = 1;
   bool iscart = false;
-  final carts = CartlistService();
   String? totalPrice;
 
   @override
@@ -328,26 +327,24 @@ class _ProductState extends State<Product> {
                   return;
                 }
 
-                setState(() {
-                  if (!iscart) {
-                    carts.addToCart({
-                      'name': widget.product['name'],
-                      'price': widget.product['price'],
-                      'image': widget.product['image'],
-                      'brandname': widget.product['brandname'],
-                      'qty': quantity,
-                      'size': selectedSize,
-                      'color': selectedColor.toARGB32(),
-                    });
-                    iscart = true;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Added to cart!')),
-                    );
-                  } else {
-                    widget.onGoToCart!();
-                    Navigator.pop(context);
-                  }
-                });
+                if (!iscart) {
+                  carts.addToCart({
+                    'name': widget.product['name'],
+                    'price': widget.product['price'],
+                    'image': widget.product['image'],
+                    'brandname': widget.product['brandname'],
+                    'qty': quantity,
+                    'size': selectedSize,
+                    'color': selectedColor.toARGB32(),
+                  });
+                  iscart = true;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Added to cart!')),
+                  );
+                } else {
+                  widget.onGoToCart!();
+                  Navigator.pop(context);
+                }
               },
               child: iscart
                   ? Text(
