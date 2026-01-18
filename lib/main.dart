@@ -1,3 +1,4 @@
+import 'package:comercial_app/providers/cart_provider.dart';
 import 'package:comercial_app/providers/login_provider.dart';
 import 'package:comercial_app/providers/signup_provider.dart';
 import 'package:comercial_app/providers/wishlist_provider.dart';
@@ -22,6 +23,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => SignupProvider()),
         ChangeNotifierProvider(create: (_) => LoginProvider()),
         ChangeNotifierProvider(create: (_) => WishlistProvider()),
+        ChangeNotifierProvider(create: (_) => CartProvider()),
       ],
       child: ScreenUtilInit(
         designSize: const Size(390, 844),
@@ -51,7 +53,7 @@ class MainApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/': (context) => const Nav(),
+        '/': (context) => const Onboarding(),
         '/login': (context) => const Login(),
         '/home': (context) => const Nav(),
         '/wishlist': (context) => const WishlistPage(),

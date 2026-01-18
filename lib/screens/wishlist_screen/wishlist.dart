@@ -1,15 +1,13 @@
+import 'package:comercial_app/providers/cart_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:comercial_app/providers/wishlist_provider.dart';
-import 'package:comercial_app/services/cart_service.dart';
 
 class WishlistPage extends StatelessWidget {
   const WishlistPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final carts = CartlistService();
-
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -134,8 +132,9 @@ class WishlistPage extends StatelessWidget {
                                     fit: BoxFit.cover,
                                     loadingBuilder:
                                         (context, child, loadingProgress) {
-                                          if (loadingProgress == null)
+                                          if (loadingProgress == null) {
                                             return child;
+                                          }
                                           return Center(
                                             child: CircularProgressIndicator(
                                               value:
@@ -220,7 +219,9 @@ class WishlistPage extends StatelessWidget {
                                     child: ElevatedButton(
                                       onPressed: () {
                                         try {
-                                          carts.addToCart(product);
+                                          context
+                                              .read<CartProvider>()
+                                              .addToCart(product);
                                           ScaffoldMessenger.of(
                                             context,
                                           ).showSnackBar(

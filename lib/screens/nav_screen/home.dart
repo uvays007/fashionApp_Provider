@@ -108,7 +108,10 @@ class _HomeState extends State<Home> {
       if (!mounted) return;
 
       // Load wishlist status for each product
-      final wishlistProvider = context.read<WishlistProvider>();
+      final wishlistProvider = Provider.of<WishlistProvider>(
+        context,
+        listen: false,
+      );
       for (var product in fetchedProducts) {
         final productId = product['id'];
         if (productId != null) {
@@ -583,114 +586,115 @@ class _HomeState extends State<Home> {
     }
 
     // Products Grid
-    return GridView.builder(
-      physics: const NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
-      itemCount: filteredproducts.length,
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 12.w,
-        mainAxisSpacing: 16.h,
-        childAspectRatio: 0.65,
-      ),
-      itemBuilder: (context, index) {
-        final product = filteredproducts[index];
-        final imageUrl = product['image']?.toString() ?? '';
-        final productId = product['id']?.toString() ?? '';
-        final brandName = product['brandname']?.toString() ?? 'Brand';
-        final productName = product['name']?.toString() ?? 'Product';
-        final productPrice = product['price']?.toString() ?? '0';
-
-        return GestureDetector(
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) =>
-                  Product(product: product, onGoToCart: widget.goToCart),
-            ),
+    return Consumer<WishlistProvider>(
+      builder: (context, wishlistProvider, _) {
+        return GridView.builder(
+          physics: const NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          itemCount: filteredproducts.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 12.w,
+            mainAxisSpacing: 16.h,
+            childAspectRatio: 0.65,
           ),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12.r),
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 6.r,
-                  offset: Offset(0, 2.h),
+          itemBuilder: (context, index) {
+            final product = filteredproducts[index];
+            final imageUrl = product['image']?.toString() ?? '';
+            final productId = product['id']?.toString() ?? '';
+            final brandName = product['brandname']?.toString() ?? 'Brand';
+            final productName = product['name']?.toString() ?? 'Product';
+            final productPrice = product['price']?.toString() ?? '0';
+
+            // Check if product is in wishlist
+            final isLiked = productId.isNotEmpty
+                ? wishlistProvider.isLiked(productId)
+                : false;
+
+            return GestureDetector(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      Product(product: product, onGoToCart: widget.goToCart),
                 ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Product Image
-                Stack(
-                  children: [
-                    Container(
-                      height: 180.h,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(12.r),
-                          topRight: Radius.circular(12.r),
-                        ),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(12.r),
-                          topRight: Radius.circular(12.r),
-                        ),
-                        child: _buildProductImage(imageUrl),
-                      ),
+              ),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12.r),
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 6.r,
+                      offset: Offset(0, 2.h),
                     ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Product Image
+                    Stack(
+                      children: [
+                        Container(
+                          height: 180.h,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(12.r),
+                              topRight: Radius.circular(12.r),
+                            ),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(12.r),
+                              topRight: Radius.circular(12.r),
+                            ),
+                            child: _buildProductImage(imageUrl),
+                          ),
+                        ),
 
-                    // Wishlist Button
-                    Positioned(
-                      right: 8.w,
-                      top: 8.h,
-                      child: Consumer<WishlistProvider>(
-                        builder: (context, wishlist, _) {
-                          final liked = productId.isNotEmpty
-                              ? wishlist.isLiked(productId)
-                              : false;
-
-                          return GestureDetector(
+                        // Wishlist Button
+                        Positioned(
+                          right: 8.w,
+                          top: 8.h,
+                          child: GestureDetector(
                             onTap: () async {
                               if (productId.isEmpty) return;
 
-                              final wishlistProvider = context
-                                  .read<WishlistProvider>();
-
-                              if (!liked) {
+                              if (!isLiked) {
+                                // Show confirmation dialog for adding to wishlist
                                 final bool?
                                 confirm = await showModalBottomSheet<bool>(
                                   context: context,
-                                  shape: const RoundedRectangleBorder(
+                                  isScrollControlled: true,
+                                  shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.vertical(
-                                      top: Radius.circular(20),
+                                      top: Radius.circular(20.r),
                                     ),
                                   ),
-                                  builder: (_) {
-                                    return Padding(
-                                      padding: const EdgeInsets.all(20),
+                                  builder: (context) {
+                                    return Container(
+                                      padding: EdgeInsets.all(20.w),
                                       child: Column(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          const Text(
+                                          Text(
                                             "Add to Wishlist?",
                                             style: TextStyle(
-                                              fontSize: 20,
+                                              fontSize: 18.sp,
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
-                                          const SizedBox(height: 10),
-                                          const Text(
+                                          SizedBox(height: 10.h),
+                                          Text(
                                             "Do you really want to add this item to your wishlist?",
                                             textAlign: TextAlign.center,
+                                            style: TextStyle(fontSize: 14.sp),
                                           ),
-                                          const SizedBox(height: 20),
+                                          SizedBox(height: 20.h),
                                           Row(
                                             children: [
                                               Expanded(
@@ -700,10 +704,27 @@ class _HomeState extends State<Home> {
                                                         context,
                                                         false,
                                                       ),
-                                                  child: const Text("Cancel"),
+                                                  style: OutlinedButton.styleFrom(
+                                                    shape: RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            8.r,
+                                                          ),
+                                                    ),
+                                                    side: BorderSide(
+                                                      color: Colors.grey[300]!,
+                                                    ),
+                                                  ),
+                                                  child: Text(
+                                                    "Cancel",
+                                                    style: TextStyle(
+                                                      fontSize: 14.sp,
+                                                      color: Colors.grey[700],
+                                                    ),
+                                                  ),
                                                 ),
                                               ),
-                                              const SizedBox(width: 12),
+                                              SizedBox(width: 12.w),
                                               Expanded(
                                                 child: ElevatedButton(
                                                   onPressed: () =>
@@ -711,22 +732,31 @@ class _HomeState extends State<Home> {
                                                         context,
                                                         true,
                                                       ),
-                                                  style:
-                                                      ElevatedButton.styleFrom(
-                                                        backgroundColor:
-                                                            const Color(
-                                                              0xFFC19375,
-                                                            ),
-                                                      ),
-                                                  child: const Text(
+                                                  style: ElevatedButton.styleFrom(
+                                                    backgroundColor:
+                                                        const Color(0xFFC19375),
+                                                    shape: RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            8.r,
+                                                          ),
+                                                    ),
+                                                  ),
+                                                  child: Text(
                                                     "Yes",
                                                     style: TextStyle(
+                                                      fontSize: 14.sp,
                                                       color: Colors.white,
                                                     ),
                                                   ),
                                                 ),
                                               ),
                                             ],
+                                          ),
+                                          SizedBox(
+                                            height: MediaQuery.of(
+                                              context,
+                                            ).viewInsets.bottom,
                                           ),
                                         ],
                                       ),
@@ -736,9 +766,11 @@ class _HomeState extends State<Home> {
 
                                 if (confirm == true) {
                                   await wishlistProvider.toggleLike(product);
+                                  print('clicked');
                                 }
                               } else {
-                                wishlistProvider.toggleLike(product);
+                                // Remove from wishlist directly
+                                await wishlistProvider.toggleLike(product);
                               }
                             },
                             child: Container(
@@ -755,66 +787,68 @@ class _HomeState extends State<Home> {
                                 ],
                               ),
                               child: Icon(
-                                liked ? Icons.favorite : Icons.favorite_border,
-                                color: liked
+                                isLiked
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                                color: isLiked
                                     ? Colors.redAccent
                                     : Colors.grey[600],
                                 size: 18.w,
                               ),
                             ),
-                          );
-                        },
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // Product Details
+                    Padding(
+                      padding: EdgeInsets.all(10.w),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            brandName,
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14.sp,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          SizedBox(height: 4.h),
+                          Text(
+                            productName,
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontWeight: FontWeight.w500,
+                              fontSize: 13.sp,
+                              color: Colors.grey[700],
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          SizedBox(height: 6.h),
+                          Text(
+                            productPrice.startsWith('₹')
+                                ? productPrice
+                                : '₹$productPrice',
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFFC19375),
+                              fontSize: 15.sp,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-
-                // Product Details
-                Padding(
-                  padding: EdgeInsets.all(10.w),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        brandName,
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14.sp,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      SizedBox(height: 4.h),
-                      Text(
-                        productName,
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.w500,
-                          fontSize: 13.sp,
-                          color: Colors.grey[700],
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      SizedBox(height: 6.h),
-                      Text(
-                        productPrice.startsWith('₹')
-                            ? productPrice
-                            : '₹$productPrice',
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFFC19375),
-                          fontSize: 15.sp,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );

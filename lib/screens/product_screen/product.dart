@@ -1,7 +1,8 @@
+import 'package:comercial_app/providers/cart_provider.dart';
 import 'package:comercial_app/screens/order_screen/orderpayment.dart';
-import 'package:comercial_app/services/cart_service.dart';
 import 'package:comercial_app/theme/Textstyles.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class Product extends StatefulWidget {
   final Map<String, dynamic> product;
@@ -319,7 +320,7 @@ class _ProductState extends State<Product> {
               onPressed: () {
                 if (selectedSize == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
+                    const SnackBar(
                       backgroundColor: Colors.red,
                       content: Text('Please select the size'),
                     ),
@@ -328,24 +329,26 @@ class _ProductState extends State<Product> {
                 }
 
                 if (!iscart) {
-                  carts.addToCart({
-                    'name': widget.product['name'],
-                    'price': widget.product['price'],
-                    'image': widget.product['image'],
-                    'brandname': widget.product['brandname'],
-                    'qty': quantity,
+                  context.read<CartProvider>().addToCart({
+                    ...widget.product,
+                    'quantity': quantity,
                     'size': selectedSize,
-                    'color': selectedColor.toARGB32(),
+                    'color': selectedColor.value,
                   });
-                  iscart = true;
+
+                  setState(() {
+                    iscart = true;
+                  });
+
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Added to cart!')),
                   );
                 } else {
-                  widget.onGoToCart!();
+                  widget.onGoToCart?.call();
                   Navigator.pop(context);
                 }
               },
+
               child: iscart
                   ? Text(
                       'Go to Cart',
