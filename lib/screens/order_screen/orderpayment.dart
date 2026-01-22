@@ -386,7 +386,7 @@ class _OrderPaymentPageState extends State<OrderPaymentPage> {
             ),
             const SizedBox(height: 10),
             Text(
-              "Your order has been placed.\nTotal Paid: Rs.$finalTotal",
+              "Your order has been placed.\nRs.${context.watch<CartProvider>().total.toString()}",
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
