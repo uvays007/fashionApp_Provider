@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:comercial_app/helper/timehelper.dart';
+import 'package:comercial_app/providers/cart_provider.dart';
 import 'package:comercial_app/screens/global_screen/global.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class OrderPaymentPage extends StatefulWidget {
   final String total;
@@ -48,7 +50,10 @@ class _OrderPaymentPageState extends State<OrderPaymentPage> {
             ),
             const SizedBox(height: 10),
 
-            _buildSummaryRow("Items Total", "Rs.$originalTotal"),
+            _buildSummaryRow(
+              "Items Total",
+              'Rs.${context.watch<CartProvider>().total.toString()}',
+            ),
             _buildSummaryRow("Shipping", "Free"),
 
             if (discount > 0)
@@ -60,7 +65,11 @@ class _OrderPaymentPageState extends State<OrderPaymentPage> {
               ),
 
             const Divider(),
-            _buildSummaryRow("Total Amount", "Rs.$finalTotal", bold: true),
+            _buildSummaryRow(
+              "Total Amount",
+              'Rs.${context.watch<CartProvider>().total.toString()}',
+              bold: true,
+            ),
 
             const SizedBox(height: 30),
 

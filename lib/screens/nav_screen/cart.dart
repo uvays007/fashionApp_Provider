@@ -12,21 +12,10 @@ class Cart extends StatefulWidget {
 }
 
 class _CartState extends State<Cart> {
-  double calculateTotal(List<Map<String, dynamic>> carts) {
-    double sum = 0;
-
-    for (var cart in carts) {
-      final priceString = cart['price'].toString().replaceAll(
-        RegExp(r'[^0-9.]'),
-        '',
-      );
-
-      double price = double.tryParse(priceString) ?? 0;
-      int qty = cart['qty'] ?? 1;
-
-      sum += price * qty;
-    }
-    return sum;
+  @override
+  void initState() {
+    super.initState();
+    context.read<CartProvider>().calculateCartTotal();
   }
 
   @override
@@ -44,7 +33,6 @@ class _CartState extends State<Cart> {
               }
 
               final carts = snapshot.data!;
-              final totalPrice = calculateTotal(carts);
 
               if (carts.isEmpty) {
                 return const Center(
@@ -71,7 +59,7 @@ class _CartState extends State<Cart> {
                               .replaceAll(RegExp(r'[^0-9.]'), '');
 
                           double basePrice = double.tryParse(priceString) ?? 0;
-                          int qty = cart['qty'] ?? 1;
+                          int qty = cart['quantity'] ?? 1;
 
                           double itemTotal = basePrice * qty;
 
@@ -101,13 +89,6 @@ class _CartState extends State<Cart> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        cart['brandname'],
-                                        style: AppTextStyles.bold.copyWith(
-                                          fontSize: 15,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
                                       const SizedBox(height: 4),
                                       Text(
                                         cart['name'],
@@ -119,83 +100,63 @@ class _CartState extends State<Cart> {
 
                                       const SizedBox(height: 10),
 
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 4,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          border: Border.all(
-                                            color: Colors.grey.shade300,
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          GestureDetector(
+                                            onTap: () {
+                                              cartsProvider.decreaseQuantity(
+                                                cart['id'],
+                                              );
+                                            },
+
+                                            child: Container(
+                                              padding: const EdgeInsets.all(6),
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: Colors.grey.shade200,
+                                              ),
+                                              child: const Icon(
+                                                Icons.remove,
+                                                size: 18,
+                                              ),
+                                            ),
                                           ),
-                                          borderRadius: BorderRadius.circular(
-                                            10,
+
+                                          const SizedBox(width: 12),
+
+                                          Text(
+                                            "$qty",
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            InkWell(
-                                              onTap: () {
-                                                cartsProvider.decreaseQuantity(
-                                                  cart['id'],
-                                                );
-                                              },
-                                              borderRadius:
-                                                  BorderRadius.circular(20),
-                                              child: Container(
-                                                padding: const EdgeInsets.all(
-                                                  6,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  shape: BoxShape.circle,
-                                                  color: Colors.grey.shade200,
-                                                ),
-                                                child: const Icon(
-                                                  Icons.remove,
-                                                  size: 13,
-                                                ),
+
+                                          const SizedBox(width: 12),
+
+                                          GestureDetector(
+                                            onTap: () {
+                                              context
+                                                  .read<CartProvider>()
+                                                  .incrementQuantity(
+                                                    cart['id'],
+                                                  );
+                                            },
+
+                                            child: Container(
+                                              padding: const EdgeInsets.all(6),
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: Colors.grey.shade200,
+                                              ),
+                                              child: const Icon(
+                                                Icons.add,
+                                                size: 18,
                                               ),
                                             ),
-
-                                            const SizedBox(width: 12),
-
-                                            Text(
-                                              "$qty",
-                                              style: const TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-
-                                            const SizedBox(width: 12),
-
-                                            InkWell(
-                                              onTap: () {
-                                                context
-                                                    .read<CartProvider>()
-                                                    .incrementQuantity(
-                                                      cart['id'],
-                                                    );
-                                              },
-                                              borderRadius:
-                                                  BorderRadius.circular(20),
-                                              child: Container(
-                                                padding: const EdgeInsets.all(
-                                                  6,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  shape: BoxShape.circle,
-                                                  color: Colors.grey.shade200,
-                                                ),
-                                                child: const Icon(
-                                                  Icons.add,
-                                                  size: 13,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),
@@ -216,9 +177,12 @@ class _CartState extends State<Cart> {
                                     SizedBox(height: 40),
 
                                     InkWell(
-                                      onTap: () => cartsProvider.removeFromCart(
-                                        cart['id'],
-                                      ),
+                                      onTap: () {
+                                        debugPrint("CLICKED");
+                                        cartsProvider.removeFromCart(
+                                          cart['id'],
+                                        );
+                                      },
                                       borderRadius: BorderRadius.circular(8),
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(
@@ -275,7 +239,7 @@ class _CartState extends State<Cart> {
                           children: [
                             _totalRow(
                               "Subtotal",
-                              "Rs.${totalPrice.toStringAsFixed(2)}",
+                              "Rs.${context.watch<CartProvider>().total.toStringAsFixed(2)}",
                             ),
                             const SizedBox(height: 6),
                             _totalRow(
@@ -286,7 +250,7 @@ class _CartState extends State<Cart> {
                             const Divider(height: 25),
                             _totalRow(
                               "Total",
-                              "Rs.${totalPrice.toStringAsFixed(2)}",
+                              "Rs.${context.watch<CartProvider>().total.toStringAsFixed(2)}",
                               isBold: true,
                             ),
                           ],
@@ -306,7 +270,7 @@ class _CartState extends State<Cart> {
                 return const SizedBox();
               }
 
-              final totalPrice = calculateTotal(snapshot.data!);
+              final totalPrice = 100000;
 
               return Container(
                 padding: const EdgeInsets.all(18),

@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class CartProvider extends ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  String? get uid => _auth.currentUser?.uid;
+  double total = 0;
 
-  /// 🔑 Create unique cart item id
+  /// 🔑 Create unique cart item ID
   String _cartItemId({
     required String productId,
     required String size,
@@ -17,117 +15,99 @@ class CartProvider extends ChangeNotifier {
     return '${productId}_${size}_$color';
   }
 
-  /// ➕ Add to cart (with size, color, quantity)
+  /// ➕ Add a product to cart
   Future<void> addToCart(Map<String, dynamic> product) async {
-    if (uid == null) return;
-
-    final String productId = product['id'];
-    final String size = product['size'];
-    final int color = product['color'];
-    final int quantity = product['quantity'] ?? 1;
-
     final cartItemId = _cartItemId(
-      productId: productId,
-      size: size,
-      color: color,
+      productId: product['id'],
+      size: product['size'],
+      color: product['color'],
     );
 
-    final cartRef = _firestore
-        .collection('users')
-        .doc(uid)
-        .collection('cart')
-        .doc(cartItemId);
+    final cartRef = _firestore.collection('cart').doc(cartItemId);
 
     final doc = await cartRef.get();
 
     if (doc.exists) {
-      /// 🔁 Increase quantity
-      await cartRef.update({'quantity': FieldValue.increment(quantity)});
+      // Increase quantity if item exists
+      await cartRef.update({'quantity': FieldValue.increment(1)});
     } else {
-      /// 🆕 Add new cart item
+      // Add new item
       await cartRef.set({
-        'productId': productId,
+        'productId': product['id'],
         'name': product['name'],
         'price': product['price'],
         'image': product['image'],
-        'size': size,
-        'color': color,
-        'quantity': quantity,
+        'size': product['size'],
+        'color': product['color'],
+        'quantity': 1,
         'addedAt': Timestamp.now(),
       });
     }
-
-    notifyListeners();
   }
 
   /// ➕ Increment quantity
   Future<void> incrementQuantity(String cartItemId) async {
-    if (uid == null) return;
-
-    await _firestore
-        .collection('users')
-        .doc(uid)
-        .collection('cart')
-        .doc(cartItemId)
-        .update({'quantity': FieldValue.increment(1)});
-
-    notifyListeners();
-  }
-
-  /// ➖ Decrease quantity
-  Future<void> decreaseQuantity(String cartItemId) async {
-    if (uid == null) return;
-
-    final cartRef = _firestore
-        .collection('users')
-        .doc(uid)
-        .collection('cart')
-        .doc(cartItemId);
-
+    final cartRef = _firestore.collection('cart').doc(cartItemId);
     final doc = await cartRef.get();
     if (!doc.exists) return;
 
-    final int qty = doc['quantity'];
+    await cartRef.update({'quantity': FieldValue.increment(1)});
+    calculateCartTotal();
+  }
+
+  /// ➖ Decrement quantity
+  Future<void> decreaseQuantity(String cartItemId) async {
+    final cartRef = _firestore.collection('cart').doc(cartItemId);
+    final doc = await cartRef.get();
+    if (!doc.exists) return;
+
+    final int qty = doc['quantity'] ?? 1;
 
     if (qty <= 1) {
+      // Remove item if quantity is 1
       await cartRef.delete();
     } else {
       await cartRef.update({'quantity': FieldValue.increment(-1)});
     }
-
-    notifyListeners();
+    calculateCartTotal();
   }
 
   /// ❌ Remove item completely
   Future<void> removeFromCart(String cartItemId) async {
-    if (uid == null) return;
-
-    await _firestore
-        .collection('users')
-        .doc(uid)
-        .collection('cart')
-        .doc(cartItemId)
-        .delete();
-
-    notifyListeners();
+    final cartRef = _firestore.collection('cart').doc(cartItemId);
+    await cartRef.delete();
   }
 
-  /// 📡 Cart stream
+  /// 📡 Stream of cart items (SOURCE OF TRUTH)
   Stream<List<Map<String, dynamic>>> cartStream() {
-    if (uid == null) return const Stream.empty();
-
     return _firestore
-        .collection('users')
-        .doc(uid)
         .collection('cart')
         .orderBy('addedAt', descending: true)
         .snapshots()
         .map((snapshot) {
           return snapshot.docs.map((doc) {
-            final data = doc.data();
-            data['cartItemId'] = doc.id;
-            return data;
+            return {
+              'id': doc.id, // 🔥 Important for UI actions
+              ...doc.data(),
+            };
           }).toList();
         });
+  }
+
+  Future<void> calculateCartTotal() async {
+    double sum = 0;
+    final snapshot = await FirebaseFirestore.instance.collection('cart').get();
+    for (var doc in snapshot.docs) {
+      final data = doc.data(); // 🔥 Remove RS, spaces, symbols
+      final priceString = data['price'].toString().replaceAll(
+        RegExp(r'[^0-9.]'),
+        '',
+      );
+      final price = double.tryParse(priceString) ?? 0;
+      final qty = data['quantity'] ?? 1;
+      sum += price * qty;
+    }
+    total = sum;
+    notifyListeners();
   }
 }
