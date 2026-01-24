@@ -9,57 +9,32 @@ class WishlistProvider extends ChangeNotifier {
   String? get uid => _auth.currentUser?.uid;
   bool get isLoggedIn => uid != null;
 
-  final Map<String, bool> _likedMap = {}; // productId -> liked status cache
+  final Map<String, bool> _likedMap = {};
 
-  // MARK: - Public Methods
-
-  /// Check if product is liked by current user
   bool isLiked(String productId) {
     return _likedMap[productId] ?? false;
   }
 
-  /// Load like status from Firebase for a product
   Future<void> loadLikeStatus(String productId) async {
-    if (!isLoggedIn) return;
-
     try {
-      final doc = await _firestore
-          .collection('users')
-          .doc(uid)
-          .collection('wishlist')
-          .doc(productId)
-          .get();
+      final doc = await _firestore.collection('wishlist').doc(productId).get();
 
       _likedMap[productId] = doc.exists;
       notifyListeners();
     } catch (e) {
-      debugPrint("❌ Error loading like status: $e");
+      debugPrint(" Error loading like status: $e");
     }
   }
 
-  /// Add product to wishlist
   Future<bool> addToWishlist(Map<String, dynamic> product) async {
-    final productId = product['id']?.toString();
-
-    if (!isLoggedIn || productId == null) {
-      debugPrint(
-        "⚠️ Cannot add to wishlist: ${!isLoggedIn ? 'User not logged in' : 'Product ID is null'}",
-      );
-      return false;
-    }
+    final productId = product['id'];
 
     try {
-      // Store full product data in user's wishlist
-      await _firestore
-          .collection('users')
-          .doc(uid)
-          .collection('wishlist')
-          .doc(productId)
-          .set({
-            ..._cleanProductData(product),
-            'addedAt': FieldValue.serverTimestamp(),
-            'userId': uid,
-          }, SetOptions(merge: true));
+      await _firestore.collection('wishlist').doc(productId).set({
+        ..._cleanProductData(product),
+        'addedAt': FieldValue.serverTimestamp(),
+        'userId': uid,
+      }, SetOptions(merge: true));
 
       _likedMap[productId] = true;
       notifyListeners();
@@ -72,17 +47,9 @@ class WishlistProvider extends ChangeNotifier {
     }
   }
 
-  /// Remove product from wishlist
   Future<bool> removeFromWishlist(String productId) async {
-    if (!isLoggedIn) return false;
-
     try {
-      await _firestore
-          .collection('users')
-          .doc(uid)
-          .collection('wishlist')
-          .doc(productId)
-          .delete();
+      await _firestore.collection('wishlist').doc(productId).delete();
 
       _likedMap[productId] = false;
       notifyListeners();
@@ -95,10 +62,8 @@ class WishlistProvider extends ChangeNotifier {
     }
   }
 
-  /// Toggle like status
   Future<bool> toggleLike(Map<String, dynamic> product) async {
-    final productId = product['id']?.toString();
-    if (!isLoggedIn || productId == null) return false;
+    final productId = product['id'];
 
     try {
       if (isLiked(productId)) {
@@ -107,31 +72,23 @@ class WishlistProvider extends ChangeNotifier {
         return await addToWishlist(product);
       }
     } catch (e) {
-      debugPrint("❌ Error toggling like: $e");
+      debugPrint(" Error toggling like: $e");
       return false;
     }
   }
 
-  /// Get wishlist stream for current user
   Stream<List<Map<String, dynamic>>> wishlistStream() {
-    if (!isLoggedIn) {
-      return Stream.value([]);
-    }
-
     return _firestore
-        .collection('users')
-        .doc(uid)
         .collection('wishlist')
         .orderBy('addedAt', descending: true)
         .snapshots()
-        .handleError((error) {
-          debugPrint("❌ Wishlist stream error: $error");
-          return const Stream.empty();
-        })
-        .map((snapshot) => snapshot.docs.map(_mapDocument).toList());
+        .map((snapshot) {
+          return snapshot.docs.map((doc) {
+            return {'id': doc.id, ...doc.data()};
+          }).toList();
+        });
   }
 
-  /// Get wishlist count stream
   Stream<int> wishlistCountStream() {
     if (!isLoggedIn) return Stream.value(0);
 
@@ -144,7 +101,6 @@ class WishlistProvider extends ChangeNotifier {
         .handleError((_) => 0);
   }
 
-  /// Clear entire wishlist
   Future<bool> clearWishlist() async {
     if (!isLoggedIn) return false;
 
@@ -172,7 +128,6 @@ class WishlistProvider extends ChangeNotifier {
     }
   }
 
-  /// Check if product exists in wishlist
   Future<bool> isInWishlist(String productId) async {
     if (!isLoggedIn) return false;
 
@@ -190,7 +145,6 @@ class WishlistProvider extends ChangeNotifier {
     }
   }
 
-  /// Bulk load like statuses for multiple products
   Future<void> loadMultipleLikeStatuses(List<String> productIds) async {
     if (!isLoggedIn) return;
 
@@ -203,20 +157,15 @@ class WishlistProvider extends ChangeNotifier {
     }
   }
 
-  // MARK: - Private Helper Methods
-
-  /// Clean product data before storing
   Map<String, dynamic> _cleanProductData(Map<String, dynamic> product) {
     final cleaned = Map<String, dynamic>.from(product);
 
-    // Ensure essential fields exist
     cleaned['id'] = cleaned['id']?.toString() ?? '';
     cleaned['name'] = cleaned['name']?.toString() ?? 'Unknown Product';
     cleaned['price'] = cleaned['price']?.toString() ?? 'N/A';
     cleaned['image'] = cleaned['image']?.toString() ?? '';
     cleaned['brandname'] = cleaned['brandname']?.toString() ?? '';
 
-    // Remove any non-serializable objects
     cleaned.removeWhere((key, value) {
       return value is Timestamp ||
           value is FieldValue ||
@@ -227,11 +176,9 @@ class WishlistProvider extends ChangeNotifier {
     return cleaned;
   }
 
-  /// Map Firestore document to product map
   Map<String, dynamic> _mapDocument(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>? ?? {};
 
-    // Ensure all required fields exist
     return {
       'id': data['id']?.toString() ?? doc.id,
       'name': data['name']?.toString() ?? 'Unknown Product',
@@ -240,12 +187,11 @@ class WishlistProvider extends ChangeNotifier {
       'brandname': data['brandname']?.toString() ?? '',
       'addedAt': data['addedAt'],
       'userId': data['userId'],
-      'wishlistDocId': doc.id, // Reference to wishlist document
-      ...data, // Include any other fields
+      'wishlistDocId': doc.id,
+      ...data,
     };
   }
 
-  /// Clear local cache (useful on logout)
   void clearCache() {
     _likedMap.clear();
     notifyListeners();

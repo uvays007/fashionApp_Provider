@@ -30,23 +30,6 @@ class WishlistPage extends StatelessWidget {
 
       body: Consumer<WishlistProvider>(
         builder: (context, wishlistProvider, _) {
-          // Check if user is logged in
-          if (wishlistProvider.uid == null) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.person_off, size: 60, color: Colors.grey[400]),
-                  const SizedBox(height: 20),
-                  const Text(
-                    "Please login to view wishlist",
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
-                  ),
-                ],
-              ),
-            );
-          }
-
           return StreamBuilder<List<Map<String, dynamic>>>(
             stream: wishlistProvider.wishlistStream(),
             builder: (context, snapshot) {
@@ -99,7 +82,6 @@ class WishlistPage extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final product = wishlistItems[index];
 
-                  // NULL SAFE ACCESS - FIX FOR THE ERROR
                   final productId = product['id']?.toString() ?? '';
                   final productName =
                       product['name']?.toString() ?? 'Unknown Product';
@@ -116,7 +98,6 @@ class WishlistPage extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
-                        /// IMAGE - WITH NULL SAFETY
                         Container(
                           height: 80,
                           width: 80,
@@ -175,7 +156,6 @@ class WishlistPage extends StatelessWidget {
 
                         const SizedBox(width: 12),
 
-                        /// DETAILS
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -213,7 +193,6 @@ class WishlistPage extends StatelessWidget {
 
                               Row(
                                 children: [
-                                  /// ADD TO CART - WITH NULL CHECK
                                   SizedBox(
                                     height: 36,
                                     child: ElevatedButton(
@@ -270,7 +249,6 @@ class WishlistPage extends StatelessWidget {
 
                                   const SizedBox(width: 8),
 
-                                  /// REMOVE FROM WISHLIST - WITH NULL CHECK
                                   SizedBox(
                                     height: 36,
                                     width: 90,

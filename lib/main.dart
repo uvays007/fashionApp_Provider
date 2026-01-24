@@ -4,7 +4,6 @@ import 'package:comercial_app/providers/signup_provider.dart';
 import 'package:comercial_app/providers/wishlist_provider.dart';
 import 'package:comercial_app/screens/Authentications_screens/login.dart';
 import 'package:comercial_app/screens/nav_screen/nav.dart';
-import 'package:comercial_app/screens/onboarding_screen/onboarding.dart';
 import 'package:comercial_app/screens/order_screen/order.dart';
 import 'package:comercial_app/screens/wishlist_screen/wishlist.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -59,7 +58,6 @@ class MainApp extends StatelessWidget {
         '/wishlist': (context) => const WishlistPage(),
         '/orders': (context) => const OrderPage(),
       },
-      // Optional: Handle unknown routes
       onGenerateRoute: (settings) {
         return MaterialPageRoute(builder: (context) => const Nav());
       },

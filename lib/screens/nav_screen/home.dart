@@ -60,7 +60,6 @@ class _HomeState extends State<Home> {
     super.initState();
     print("Home screen initialized");
 
-    // Test Firebase connection
     FirebaseFirestore.instance
         .collection("products")
         .limit(1)
@@ -107,7 +106,6 @@ class _HomeState extends State<Home> {
 
       if (!mounted) return;
 
-      // Load wishlist status for each product
       final wishlistProvider = Provider.of<WishlistProvider>(
         context,
         listen: false,
@@ -232,7 +230,6 @@ class _HomeState extends State<Home> {
             children: [
               SizedBox(height: 7.h),
 
-              // Search Bar
               Container(
                 height: 45.h,
                 decoration: BoxDecoration(
@@ -266,7 +263,6 @@ class _HomeState extends State<Home> {
 
               SizedBox(height: 10.h),
 
-              // Carousel Banner
               Stack(
                 alignment: Alignment.bottomCenter,
                 children: [
@@ -355,7 +351,6 @@ class _HomeState extends State<Home> {
 
               SizedBox(height: 20.h),
 
-              // Categories Section
               Row(
                 children: [
                   Text(
@@ -382,7 +377,6 @@ class _HomeState extends State<Home> {
 
               SizedBox(height: 12.h),
 
-              // Categories Images
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -429,7 +423,6 @@ class _HomeState extends State<Home> {
 
               SizedBox(height: 25.h),
 
-              // All Products Header
               Row(
                 children: [
                   Text(
@@ -475,7 +468,6 @@ class _HomeState extends State<Home> {
 
               SizedBox(height: 15.h),
 
-              // Products Grid or Loading/Error/Empty States
               _buildProductsSection(),
             ],
           ),
@@ -485,7 +477,6 @@ class _HomeState extends State<Home> {
   }
 
   Widget _buildProductsSection() {
-    // Loading state
     if (isLoading) {
       return SizedBox(
         height: 300.h,
@@ -505,7 +496,6 @@ class _HomeState extends State<Home> {
       );
     }
 
-    // Error state
     if (errorMessage != null) {
       return SizedBox(
         height: 300.h,
@@ -540,7 +530,6 @@ class _HomeState extends State<Home> {
       );
     }
 
-    // Empty state
     if (filteredproducts.isEmpty) {
       return SizedBox(
         height: 300.h,
@@ -585,7 +574,6 @@ class _HomeState extends State<Home> {
       );
     }
 
-    // Products Grid
     return Consumer<WishlistProvider>(
       builder: (context, wishlistProvider, _) {
         return GridView.builder(
@@ -606,7 +594,6 @@ class _HomeState extends State<Home> {
             final productName = product['name']?.toString() ?? 'Product';
             final productPrice = product['price']?.toString() ?? '0';
 
-            // Check if product is in wishlist
             final isLiked = productId.isNotEmpty
                 ? wishlistProvider.isLiked(productId)
                 : false;
@@ -634,7 +621,6 @@ class _HomeState extends State<Home> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Product Image
                     Stack(
                       children: [
                         Container(
@@ -656,7 +642,6 @@ class _HomeState extends State<Home> {
                           ),
                         ),
 
-                        // Wishlist Button
                         Positioned(
                           right: 8.w,
                           top: 8.h,
@@ -665,7 +650,6 @@ class _HomeState extends State<Home> {
                               if (productId.isEmpty) return;
 
                               if (!isLiked) {
-                                // Show confirmation dialog for adding to wishlist
                                 final bool?
                                 confirm = await showModalBottomSheet<bool>(
                                   context: context,
@@ -769,7 +753,6 @@ class _HomeState extends State<Home> {
                                   print('clicked');
                                 }
                               } else {
-                                // Remove from wishlist directly
                                 await wishlistProvider.toggleLike(product);
                               }
                             },
@@ -801,7 +784,6 @@ class _HomeState extends State<Home> {
                       ],
                     ),
 
-                    // Product Details
                     Padding(
                       padding: EdgeInsets.all(10.w),
                       child: Column(

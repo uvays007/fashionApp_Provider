@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:comercial_app/screens/global_screen/global.dart';
-import 'package:comercial_app/screens/nav_screen/home.dart'; // Import actual Home
-import 'package:comercial_app/screens/nav_screen/tryon.dart'; // Import actual Tryon
-import 'package:comercial_app/screens/nav_screen/cart.dart'; // Import actual Cart
-import 'package:comercial_app/screens/nav_screen/profile.dart'; // Import actual Profile
+import 'package:comercial_app/screens/nav_screen/home.dart';
+import 'package:comercial_app/screens/nav_screen/tryon.dart';
+import 'package:comercial_app/screens/nav_screen/cart.dart';
+import 'package:comercial_app/screens/nav_screen/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -69,10 +69,10 @@ class _NavState extends State<Nav> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final List<Widget> pages = [
-      Home(goToCart: goToCart), // Your actual Home screen
-      Tryon(), // Your actual Tryon screen
-      Cart(), // Your actual Cart screen
-      Profile(), // Your actual Profile screen
+      Home(goToCart: goToCart),
+      Tryon(),
+      Cart(),
+      Profile(),
     ];
 
     return Scaffold(
@@ -344,9 +344,3 @@ class _NavState extends State<Nav> with SingleTickerProviderStateMixin {
 
   void _navigateTo(int index) => setState(() => selectedIndex = index);
 }
-
-// Remove these dummy classes! They were just for demonstration
-// class Home extends StatelessWidget { ... }
-// class Tryon extends StatelessWidget { ... }
-// class Cart extends StatelessWidget { ... }
-// class Profile extends StatelessWidget { ... }

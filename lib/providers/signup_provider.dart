@@ -24,7 +24,6 @@ class SignupProvider extends ChangeNotifier {
     required String email,
     required String password,
   }) async {
-    // reset errors
     usernameError = null;
     emailError = null;
     passwordError = null;
