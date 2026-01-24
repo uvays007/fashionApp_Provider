@@ -225,7 +225,9 @@ class WishlistPage extends StatelessWidget {
                                               ),
                                               behavior:
                                                   SnackBarBehavior.floating,
-                                              backgroundColor: Colors.red,
+                                              backgroundColor: Color(
+                                                0xFFC19375,
+                                              ),
                                             ),
                                           );
                                         }
@@ -250,9 +252,11 @@ class WishlistPage extends StatelessWidget {
                                   const SizedBox(width: 8),
 
                                   SizedBox(
-                                    height: 36,
+                                    height: 50,
                                     width: 90,
-                                    child: ElevatedButton(
+                                    child: IconButton(
+                                      color: Colors.red,
+                                      icon: Icon(Icons.delete),
                                       onPressed: () {
                                         if (productId.isNotEmpty) {
                                           context
@@ -268,23 +272,13 @@ class WishlistPage extends StatelessWidget {
                                               ),
                                               behavior:
                                                   SnackBarBehavior.floating,
-                                              backgroundColor: Colors.red,
+                                              backgroundColor: Color(
+                                                0xFFC19375,
+                                              ),
                                             ),
                                           );
                                         }
                                       },
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.red,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                        ),
-                                      ),
-                                      child: const Text(
-                                        "Remove",
-                                        style: TextStyle(color: Colors.white),
-                                      ),
                                     ),
                                   ),
                                 ],

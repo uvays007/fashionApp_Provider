@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class WishlistProvider extends ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-
-  String? get uid => _auth.currentUser?.uid;
-  bool get isLoggedIn => uid != null;
 
   final Map<String, bool> _likedMap = {};
 
@@ -33,16 +28,15 @@ class WishlistProvider extends ChangeNotifier {
       await _firestore.collection('wishlist').doc(productId).set({
         ..._cleanProductData(product),
         'addedAt': FieldValue.serverTimestamp(),
-        'userId': uid,
       }, SetOptions(merge: true));
 
       _likedMap[productId] = true;
       notifyListeners();
 
-      debugPrint("✅ Added product '$productId' to wishlist");
+      debugPrint(" Added product '$productId' to wishlist");
       return true;
     } catch (e) {
-      debugPrint("❌ Error adding to wishlist: $e");
+      debugPrint("Error adding to wishlist: $e");
       return false;
     }
   }
@@ -54,10 +48,10 @@ class WishlistProvider extends ChangeNotifier {
       _likedMap[productId] = false;
       notifyListeners();
 
-      debugPrint("✅ Removed product '$productId' from wishlist");
+      debugPrint(" Removed product '$productId' from wishlist");
       return true;
     } catch (e) {
-      debugPrint("❌ Error removing from wishlist: $e");
+      debugPrint(" Error removing from wishlist: $e");
       return false;
     }
   }
@@ -89,71 +83,13 @@ class WishlistProvider extends ChangeNotifier {
         });
   }
 
-  Stream<int> wishlistCountStream() {
-    if (!isLoggedIn) return Stream.value(0);
-
-    return _firestore
-        .collection('users')
-        .doc(uid)
-        .collection('wishlist')
-        .snapshots()
-        .map((snapshot) => snapshot.docs.length)
-        .handleError((_) => 0);
-  }
-
-  Future<bool> clearWishlist() async {
-    if (!isLoggedIn) return false;
-
-    try {
-      final snapshot = await _firestore
-          .collection('users')
-          .doc(uid)
-          .collection('wishlist')
-          .get();
-
-      final batch = _firestore.batch();
-      for (var doc in snapshot.docs) {
-        batch.delete(doc.reference);
-      }
-      await batch.commit();
-
-      _likedMap.clear();
-      notifyListeners();
-
-      debugPrint("✅ Cleared wishlist");
-      return true;
-    } catch (e) {
-      debugPrint("❌ Error clearing wishlist: $e");
-      return false;
-    }
-  }
-
-  Future<bool> isInWishlist(String productId) async {
-    if (!isLoggedIn) return false;
-
-    try {
-      final doc = await _firestore
-          .collection('users')
-          .doc(uid)
-          .collection('wishlist')
-          .doc(productId)
-          .get();
-      return doc.exists;
-    } catch (e) {
-      debugPrint("❌ Error checking wishlist: $e");
-      return false;
-    }
-  }
-
   Future<void> loadMultipleLikeStatuses(List<String> productIds) async {
-    if (!isLoggedIn) return;
-
     try {
       for (var productId in productIds) {
         await loadLikeStatus(productId);
       }
     } catch (e) {
-      debugPrint("❌ Error loading multiple like statuses: $e");
+      debugPrint(" Error loading multiple like statuses: $e");
     }
   }
 
@@ -174,22 +110,6 @@ class WishlistProvider extends ChangeNotifier {
     });
 
     return cleaned;
-  }
-
-  Map<String, dynamic> _mapDocument(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>? ?? {};
-
-    return {
-      'id': data['id']?.toString() ?? doc.id,
-      'name': data['name']?.toString() ?? 'Unknown Product',
-      'price': data['price']?.toString() ?? 'N/A',
-      'image': data['image']?.toString() ?? '',
-      'brandname': data['brandname']?.toString() ?? '',
-      'addedAt': data['addedAt'],
-      'userId': data['userId'],
-      'wishlistDocId': doc.id,
-      ...data,
-    };
   }
 
   void clearCache() {

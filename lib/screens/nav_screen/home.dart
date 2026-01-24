@@ -650,109 +650,23 @@ class _HomeState extends State<Home> {
                               if (productId.isEmpty) return;
 
                               if (!isLiked) {
-                                final bool?
-                                confirm = await showModalBottomSheet<bool>(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.vertical(
-                                      top: Radius.circular(20.r),
+                                await wishlistProvider.toggleLike(product);
+                                if (!mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      '${product['name']} Added to the wishlist',
                                     ),
                                   ),
-                                  builder: (context) {
-                                    return Container(
-                                      padding: EdgeInsets.all(20.w),
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            "Add to Wishlist?",
-                                            style: TextStyle(
-                                              fontSize: 18.sp,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          SizedBox(height: 10.h),
-                                          Text(
-                                            "Do you really want to add this item to your wishlist?",
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(fontSize: 14.sp),
-                                          ),
-                                          SizedBox(height: 20.h),
-                                          Row(
-                                            children: [
-                                              Expanded(
-                                                child: OutlinedButton(
-                                                  onPressed: () =>
-                                                      Navigator.pop(
-                                                        context,
-                                                        false,
-                                                      ),
-                                                  style: OutlinedButton.styleFrom(
-                                                    shape: RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            8.r,
-                                                          ),
-                                                    ),
-                                                    side: BorderSide(
-                                                      color: Colors.grey[300]!,
-                                                    ),
-                                                  ),
-                                                  child: Text(
-                                                    "Cancel",
-                                                    style: TextStyle(
-                                                      fontSize: 14.sp,
-                                                      color: Colors.grey[700],
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                              SizedBox(width: 12.w),
-                                              Expanded(
-                                                child: ElevatedButton(
-                                                  onPressed: () =>
-                                                      Navigator.pop(
-                                                        context,
-                                                        true,
-                                                      ),
-                                                  style: ElevatedButton.styleFrom(
-                                                    backgroundColor:
-                                                        const Color(0xFFC19375),
-                                                    shape: RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            8.r,
-                                                          ),
-                                                    ),
-                                                  ),
-                                                  child: Text(
-                                                    "Yes",
-                                                    style: TextStyle(
-                                                      fontSize: 14.sp,
-                                                      color: Colors.white,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          SizedBox(
-                                            height: MediaQuery.of(
-                                              context,
-                                            ).viewInsets.bottom,
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  },
                                 );
-
-                                if (confirm == true) {
-                                  await wishlistProvider.toggleLike(product);
-                                  print('clicked');
-                                }
                               } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      '${product['name']} Removed to the wishlist',
+                                    ),
+                                  ),
+                                );
                                 await wishlistProvider.toggleLike(product);
                               }
                             },
