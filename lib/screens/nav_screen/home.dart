@@ -58,22 +58,8 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
-    print("Home screen initialized");
 
-    FirebaseFirestore.instance
-        .collection("products")
-        .limit(1)
-        .get()
-        .then((snapshot) {
-          print("Firebase connection test successful");
-          print("Collection exists: products");
-          if (snapshot.docs.isNotEmpty) {
-            print("Sample product data: ${snapshot.docs.first.data()}");
-          }
-        })
-        .catchError((error) {
-          print("Firebase connection error: $error");
-        });
+    FirebaseFirestore.instance.collection("products").limit(1).get();
 
     loadProducts();
   }
@@ -87,20 +73,14 @@ class _HomeState extends State<Home> {
     });
 
     try {
-      print("Loading products from Firebase...");
-
       final snapshot = await FirebaseFirestore.instance
           .collection("products")
           .get();
 
-      print("Firebase query successful. Got ${snapshot.docs.length} documents");
-
       final fetchedProducts = snapshot.docs.map((doc) {
         final data = doc.data();
         data['id'] = doc.id;
-        print(
-          "Product ${doc.id}: ${data['name'] ?? 'No name'} - ${data['image'] ?? 'No image'}",
-        );
+
         return data;
       }).toList();
 

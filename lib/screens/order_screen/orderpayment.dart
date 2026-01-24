@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:comercial_app/helper/timehelper.dart';
 import 'package:comercial_app/providers/cart_provider.dart';
+import 'package:comercial_app/providers/orders_provider.dart';
 import 'package:comercial_app/screens/global_screen/global.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -351,13 +352,13 @@ class _OrderPaymentPageState extends State<OrderPaymentPage> {
       return;
     }
 
-    await _firestore.collection("orders").add({
-      "items": cartItems,
-      "total": finalTotal,
-      "address": _addressController.text.trim(),
-      "payment_method": _selectedPayment,
-      "time": DateTime.now().toString(),
-    });
+    if (!mounted) return;
+    context.read<OrdersProvider>().orderAdd(
+      cartItems,
+      finalTotal,
+      _addressController.text.trim(),
+      _selectedPayment,
+    );
 
     String productNames = cartItems.map((item) => item['name']).join(", ");
 
