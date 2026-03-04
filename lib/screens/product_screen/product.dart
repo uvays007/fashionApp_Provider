@@ -48,11 +48,14 @@ class _ProductState extends State<Product> {
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(16),
-                        child: Image.network(
-                          widget.product['image']!,
-                          height: 360,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
+                        child: Hero(
+                          tag: widget.product['image'],
+                          child: Image.network(
+                            widget.product['image']!,
+                            height: 360,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
                     ),
@@ -144,11 +147,22 @@ class _ProductState extends State<Product> {
 
                               const SizedBox(width: 14),
 
-                              Text(
-                                quantity.toString(),
-                                style: AppTextStyles.bold.copyWith(
-                                  fontSize: 18,
-                                  color: const Color(0xFFC19375),
+                              AnimatedSwitcher(
+                                duration: Duration(milliseconds: 300),
+                                transitionBuilder: (child, animation) {
+                                  return ScaleTransition(
+                                    scale: animation,
+                                    child: child,
+                                  );
+                                },
+
+                                child: Text(
+                                  key: ValueKey(quantity),
+                                  quantity.toString(),
+                                  style: AppTextStyles.bold.copyWith(
+                                    fontSize: 18,
+                                    color: const Color(0xFFC19375),
+                                  ),
                                 ),
                               ),
 

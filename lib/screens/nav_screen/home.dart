@@ -162,39 +162,42 @@ class _HomeState extends State<Home> {
       );
     }
 
-    return Image.network(
-      imageUrl,
-      fit: BoxFit.cover,
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) return child;
-        return Center(
-          child: CircularProgressIndicator(
-            value: loadingProgress.expectedTotalBytes != null
-                ? loadingProgress.cumulativeBytesLoaded /
-                      loadingProgress.expectedTotalBytes!
-                : null,
-          ),
-        );
-      },
-      errorBuilder: (context, error, stackTrace) {
-        print("Image loading error: $error for URL: $imageUrl");
-        return Container(
-          color: Colors.grey[200],
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.broken_image, color: Colors.grey, size: 40.h),
-                SizedBox(height: 8.h),
-                Text(
-                  "Failed to load",
-                  style: TextStyle(fontSize: 12.sp, color: Colors.grey),
-                ),
-              ],
+    return Hero(
+      tag: imageUrl,
+      child: Image.network(
+        imageUrl,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Center(
+            child: CircularProgressIndicator(
+              value: loadingProgress.expectedTotalBytes != null
+                  ? loadingProgress.cumulativeBytesLoaded /
+                        loadingProgress.expectedTotalBytes!
+                  : null,
             ),
-          ),
-        );
-      },
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          print("Image loading error: $error for URL: $imageUrl");
+          return Container(
+            color: Colors.grey[200],
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.broken_image, color: Colors.grey, size: 40.h),
+                  SizedBox(height: 8.h),
+                  Text(
+                    "Failed to load",
+                    style: TextStyle(fontSize: 12.sp, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -663,14 +666,19 @@ class _HomeState extends State<Home> {
                                   ),
                                 ],
                               ),
-                              child: Icon(
-                                isLiked
-                                    ? Icons.favorite
-                                    : Icons.favorite_border,
-                                color: isLiked
-                                    ? Colors.redAccent
-                                    : Colors.grey[600],
-                                size: 18.w,
+                              child: AnimatedScale(
+                                curve: Curves.bounceOut,
+                                scale: isLiked ? 1.4 : 1.0,
+                                duration: Duration(milliseconds: 700),
+                                child: Icon(
+                                  isLiked
+                                      ? Icons.favorite
+                                      : Icons.favorite_border,
+                                  color: isLiked
+                                      ? Colors.redAccent
+                                      : Colors.grey[600],
+                                  size: 18.w,
+                                ),
                               ),
                             ),
                           ),

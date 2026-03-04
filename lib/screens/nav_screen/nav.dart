@@ -42,12 +42,12 @@ class _NavState extends State<Nav> with SingleTickerProviderStateMixin {
     );
     _fadeAnimation = CurvedAnimation(
       parent: _controller,
-      curve: Curves.easeInOut,
+      curve: Curves.bounceInOut,
     );
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, -0.1),
       end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.bounceOut));
   }
 
   Future<Map<String, dynamic>> user() async {
@@ -122,7 +122,7 @@ class _NavState extends State<Nav> with SingleTickerProviderStateMixin {
       body: Stack(
         children: [
           AnimatedSwitcher(
-            switchInCurve: Curves.easeInCubic,
+            switchInCurve: Curves.elasticIn,
             duration: const Duration(milliseconds: 300),
             child: pages[selectedIndex],
           ),
