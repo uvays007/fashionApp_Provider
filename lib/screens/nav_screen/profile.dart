@@ -1,18 +1,44 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:comercial_app/screens/Authentications_screens/login.dart';
-import 'package:comercial_app/screens/global_screen/global.dart';
+
 import 'package:comercial_app/screens/order_screen/order.dart';
 import 'package:comercial_app/screens/wishlist_screen/wishlist.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class Profile extends StatelessWidget {
+class Profile extends StatefulWidget {
   const Profile({super.key});
 
+  @override
+  State<Profile> createState() => _ProfileState();
+}
+
+class _ProfileState extends State<Profile> {
+  List<bool> showItems = List.generate(4, (index) => false);
+
+  @override
+  void initState() {
+    super.initState();
+    startAnimation();
+  }
+
+  void startAnimation() async {
+    for (int i = 0; i < showItems.length; i++) {
+      await Future.delayed(Duration(milliseconds: 200));
+      setState(() {
+        showItems[i] = true;
+      });
+    }
+  }
+
   Future<Map<String, dynamic>> getname() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+
+    if (uid == null) return {};
     final namedata = await FirebaseFirestore.instance
         .collection('Users')
-        .doc(nameid)
+        .doc(uid)
         .get();
 
     return namedata.data() ?? {};
@@ -27,7 +53,9 @@ class Profile extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
+
+            /// PROFILE IMAGE
             Center(
               child: Stack(
                 children: [
@@ -40,7 +68,7 @@ class Profile extends StatelessWidget {
                         color: const Color(0xFFC19375),
                         width: 3,
                       ),
-                      image: DecorationImage(
+                      image: const DecorationImage(
                         image: AssetImage('assets/images/blue_prof.jpg'),
                         fit: BoxFit.fill,
                       ),
@@ -66,40 +94,32 @@ class Profile extends StatelessWidget {
                 ],
               ),
             ),
+
             const SizedBox(height: 12),
+
+            /// USER DATA
             FutureBuilder<Map<String, dynamic>>(
               future: getname(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
-                  return Text(
-                    "loading",
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontWeight: FontWeight.w700,
-                      fontSize: 20,
-                    ),
-                  );
+                  return const Text("loading");
                 }
                 final user = snapshot.data!;
-                final username = user['name'] ?? "no name";
-                final email = user['email'] ?? "no email";
                 return Column(
                   children: [
                     Text(
-                      username,
-                      style: TextStyle(
-                        fontFamily: 'Inter',
+                      user['name'] ?? "no name",
+                      style: const TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 20,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      email,
-                      style: TextStyle(
-                        fontFamily: 'Inter',
+                      user['email'] ?? "no email",
+                      style: const TextStyle(
                         fontWeight: FontWeight.w500,
-                        fontSize: 20,
+                        fontSize: 16,
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -108,47 +128,64 @@ class Profile extends StatelessWidget {
               },
             ),
 
-            _buildProfileOption(
-              icon:
-                  'assets/icons/orders_24dp_000000_FILL0_wght400_GRAD0_opsz24.svg',
-              title: "My Orders",
-              subtitle: "View your past and current orders",
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => OrderPage()),
-                );
-              },
+            /// ANIMATED OPTIONS
+            buildAnimatedItem(
+              index: 0,
+              child: _buildProfileOption(
+                icon:
+                    'assets/icons/orders_24dp_000000_FILL0_wght400_GRAD0_opsz24.svg',
+                title: "My Orders",
+                subtitle: "View your past and current orders",
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => OrderPage()),
+                  );
+                },
+              ),
             ),
-            _buildProfileOption(
-              icon:
-                  'assets/icons/bookmark_heart_24dp_000000_FILL0_wght400_GRAD0_opsz24.svg',
-              title: "Wishlist",
-              subtitle: "Your saved products",
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => WishlistPage()),
-                );
-              },
+
+            buildAnimatedItem(
+              index: 1,
+              child: _buildProfileOption(
+                icon:
+                    'assets/icons/bookmark_heart_24dp_000000_FILL0_wght400_GRAD0_opsz24.svg',
+                title: "Wishlist",
+                subtitle: "Your saved products",
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => WishlistPage()),
+                  );
+                },
+              ),
             ),
-            _buildProfileOption(
-              icon:
-                  'assets/icons/settings_account_box_24dp_000000_FILL0_wght400_GRAD0_opsz24.svg',
-              title: "Account Settings",
-              subtitle: "Change password, update details",
-              onTap: () {},
+
+            buildAnimatedItem(
+              index: 2,
+              child: _buildProfileOption(
+                icon:
+                    'assets/icons/settings_account_box_24dp_000000_FILL0_wght400_GRAD0_opsz24.svg',
+                title: "Account Settings",
+                subtitle: "Change password, update details",
+                onTap: () {},
+              ),
             ),
-            _buildProfileOption(
-              icon:
-                  'assets/icons/help_24dp_000000_FILL0_wght400_GRAD0_opsz24.svg',
-              title: "Help & Support",
-              subtitle: "FAQs and contact support",
-              onTap: () {},
+
+            buildAnimatedItem(
+              index: 3,
+              child: _buildProfileOption(
+                icon:
+                    'assets/icons/help_24dp_000000_FILL0_wght400_GRAD0_opsz24.svg',
+                title: "Help & Support",
+                subtitle: "FAQs and contact support",
+                onTap: () {},
+              ),
             ),
 
             const SizedBox(height: 10),
 
+            /// LOGOUT BUTTON
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -162,17 +199,12 @@ class Profile extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => Login()),
+                    MaterialPageRoute(builder: (_) => Login()),
                   );
                 },
                 child: const Text(
                   "Log Out",
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
-                    color: Colors.white,
-                  ),
+                  style: TextStyle(color: Colors.white),
                 ),
               ),
             ),
@@ -182,6 +214,21 @@ class Profile extends StatelessWidget {
     );
   }
 
+  /// 🔥 ANIMATION WRAPPER
+  Widget buildAnimatedItem({required int index, required Widget child}) {
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 800),
+      opacity: showItems[index] ? 1 : 0,
+      child: AnimatedSlide(
+        curve: Curves.elasticOut,
+        duration: const Duration(milliseconds: 800),
+        offset: showItems[index] ? Offset(0, 0) : Offset(1, 0),
+        child: child,
+      ),
+    );
+  }
+
+  /// ORIGINAL TILE
   Widget _buildProfileOption({
     required String icon,
     required String title,
@@ -216,18 +263,13 @@ class Profile extends StatelessWidget {
                   Text(
                     title,
                     style: const TextStyle(
-                      fontFamily: 'Inter',
                       fontWeight: FontWeight.w600,
                       fontSize: 16,
                     ),
                   ),
                   Text(
                     subtitle,
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      color: Colors.grey[700],
-                      fontSize: 13,
-                    ),
+                    style: TextStyle(color: Colors.grey[700], fontSize: 13),
                   ),
                 ],
               ),
