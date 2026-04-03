@@ -55,7 +55,6 @@ class _ProfileState extends State<Profile> {
           children: [
             const SizedBox(height: 10),
 
-            /// PROFILE IMAGE
             Center(
               child: Stack(
                 children: [
@@ -97,7 +96,6 @@ class _ProfileState extends State<Profile> {
 
             const SizedBox(height: 12),
 
-            /// USER DATA
             FutureBuilder<Map<String, dynamic>>(
               future: getname(),
               builder: (context, snapshot) {
@@ -128,7 +126,6 @@ class _ProfileState extends State<Profile> {
               },
             ),
 
-            /// ANIMATED OPTIONS
             buildAnimatedItem(
               index: 0,
               child: _buildProfileOption(
@@ -185,7 +182,6 @@ class _ProfileState extends State<Profile> {
 
             const SizedBox(height: 10),
 
-            /// LOGOUT BUTTON
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -204,7 +200,7 @@ class _ProfileState extends State<Profile> {
                 },
                 child: const Text(
                   "Log Out",
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(color: Colors.white, fontSize: 17),
                 ),
               ),
             ),
@@ -214,13 +210,11 @@ class _ProfileState extends State<Profile> {
     );
   }
 
-  /// 🔥 ANIMATION WRAPPER
   Widget buildAnimatedItem({required int index, required Widget child}) {
     return AnimatedOpacity(
       duration: const Duration(milliseconds: 800),
       opacity: showItems[index] ? 1 : 0,
       child: AnimatedSlide(
-        curve: Curves.elasticOut,
         duration: const Duration(milliseconds: 800),
         offset: showItems[index] ? Offset(0, 0) : Offset(1, 0),
         child: child,
@@ -228,7 +222,6 @@ class _ProfileState extends State<Profile> {
     );
   }
 
-  /// ORIGINAL TILE
   Widget _buildProfileOption({
     required String icon,
     required String title,

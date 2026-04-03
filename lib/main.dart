@@ -55,7 +55,7 @@ class MainApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/': (context) => const Onboarding(),
+        '/': (context) => const Nav(),
         '/login': (context) => const Login(),
         '/home': (context) => const Nav(),
         '/wishlist': (context) => const WishlistPage(),
