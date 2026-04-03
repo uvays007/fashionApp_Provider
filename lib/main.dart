@@ -1,4 +1,5 @@
 import 'package:comercial_app/providers/cart_provider.dart';
+import 'package:comercial_app/providers/home_provider.dart';
 import 'package:comercial_app/providers/login_provider.dart';
 import 'package:comercial_app/providers/orders_provider.dart';
 import 'package:comercial_app/providers/signup_provider.dart';
@@ -26,6 +27,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => WishlistProvider()),
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => OrdersProvider()),
+        ChangeNotifierProvider(create: (_) => HomeProvider()),
       ],
       child: ScreenUtilInit(
         designSize: const Size(390, 844),
