@@ -19,7 +19,6 @@ class _AllproductsState extends State<Allproducts> {
   void initState() {
     super.initState();
 
-    // 🔥 Fetch products when screen loads
     Future.microtask(() {
       Provider.of<HomeProvider>(context, listen: false).loadProducts();
     });
@@ -40,19 +39,16 @@ class _AllproductsState extends State<Allproducts> {
 
       body: Consumer<HomeProvider>(
         builder: (context, productsprovider, _) {
-          // ✅ 1. LOADING STATE
           if (productsprovider.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          // ✅ 2. EMPTY STATE
           if (productsprovider.products.isEmpty) {
             return const Center(
               child: Text("No products found", style: TextStyle(fontSize: 16)),
             );
           }
 
-          // ✅ 3. DATA UI
           return Container(
             padding: EdgeInsets.symmetric(horizontal: 20.w),
             child: Column(
@@ -61,7 +57,7 @@ class _AllproductsState extends State<Allproducts> {
 
                 Expanded(
                   child: GridView.builder(
-                    physics: const BouncingScrollPhysics(), // ✅ scroll fixed
+                    physics: const BouncingScrollPhysics(),
                     itemCount: productsprovider.products.length,
 
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -114,7 +110,6 @@ class _AllproductsState extends State<Allproducts> {
 
                                 SizedBox(height: 4.h),
 
-                                // 🔥 BRAND
                                 Text(
                                   product['brandname'] ?? '',
                                   style: TextStyle(
@@ -124,7 +119,6 @@ class _AllproductsState extends State<Allproducts> {
                                   ),
                                 ),
 
-                                // 🔥 NAME
                                 Text(
                                   product['name'] ?? '',
                                   style: TextStyle(
@@ -134,7 +128,6 @@ class _AllproductsState extends State<Allproducts> {
                                   ),
                                 ),
 
-                                // 🔥 PRICE
                                 Text(
                                   product['price'] ?? '',
                                   style: TextStyle(

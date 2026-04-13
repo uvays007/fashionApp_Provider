@@ -25,6 +25,12 @@ class _ProductState extends State<Product> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: Icon(Icons.shopping_bag_outlined, size: 33),
+          ),
+        ],
         backgroundColor: const Color(0xFFC19375),
         foregroundColor: Colors.white,
       ),

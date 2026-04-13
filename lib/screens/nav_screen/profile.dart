@@ -216,7 +216,7 @@ class _ProfileState extends State<Profile> {
       opacity: showItems[index] ? 1 : 0,
       child: AnimatedSlide(
         duration: const Duration(milliseconds: 800),
-        offset: showItems[index] ? Offset(0, 0) : Offset(1, 0),
+        offset: showItems[index] ? Offset(0, 0) : Offset(-1, 0),
         child: child,
       ),
     );
