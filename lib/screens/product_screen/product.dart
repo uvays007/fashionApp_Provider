@@ -14,12 +14,47 @@ class Product extends StatefulWidget {
   State<Product> createState() => _ProductState();
 }
 
-class _ProductState extends State<Product> {
+class _ProductState extends State<Product> with SingleTickerProviderStateMixin {
   String? selectedSize;
   Color selectedColor = Colors.black;
   int quantity = 1;
   bool iscart = false;
   String? totalPrice;
+
+  late AnimationController controller;
+  late Animation<double> xAnimation;
+  late Animation<double> yAnimation;
+  late Animation<double> scaleAnimation;
+
+  bool showFlyingimage = false;
+  @override
+  void initState() {
+    super.initState();
+    controller = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 800),
+    );
+    xAnimation = Tween(begin: 150.0, end: 320.0).animate(controller);
+    yAnimation = Tween(
+      begin: 300.0,
+      end: 60.0,
+    ).animate(CurvedAnimation(parent: controller, curve: Curves.easeInOut));
+
+    scaleAnimation = Tween(begin: 1.0, end: 0.2).animate(controller);
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  void startAnimation() {
+    setState(() {
+      showFlyingimage = true;
+      controller.forward();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +63,7 @@ class _ProductState extends State<Product> {
         actions: [
           IconButton(
             onPressed: () {},
-            icon: Icon(Icons.shopping_bag_outlined, size: 33),
+            icon: Icon(Icons.shopping_cart, size: 33),
           ),
         ],
         backgroundColor: const Color(0xFFC19375),
@@ -37,279 +72,306 @@ class _ProductState extends State<Product> {
 
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Column(
+        child: Stack(
           children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      height: 340,
-                      margin: const EdgeInsets.only(top: 10, bottom: 20),
-                      decoration: BoxDecoration(
-                        color: const Color.fromARGB(255, 240, 240, 240),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Hero(
-                          tag: widget.product['image'],
-                          child: Image.network(
-                            widget.product['image']!,
-                            height: 360,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
+            Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          height: 340,
+                          margin: const EdgeInsets.only(top: 10, bottom: 20),
+                          decoration: BoxDecoration(
+                            color: const Color.fromARGB(255, 240, 240, 240),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: Hero(
+                              tag: widget.product['image'],
+                              child: Image.network(
+                                widget.product['image']!,
+                                height: 360,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
 
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              widget.product['name'] ?? 'Product Name',
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Inter',
+                              ),
+                            ),
+                            Text(
+                              widget.product['price'] ?? '0',
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Inter',
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
                         Text(
-                          widget.product['name'] ?? 'Product Name',
+                          widget.product['category'] ?? 'Men T-shirt',
                           style: const TextStyle(
-                            fontSize: 22,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.grey,
+                            fontFamily: 'Inter',
+                          ),
+                        ),
+
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Text(
+                              'Qty',
+                              style: AppTextStyles.semiBold.copyWith(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 20,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(14),
+                                color: Colors.grey.shade100,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.shade300,
+                                    blurRadius: 4,
+                                    offset: const Offset(2, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                children: [
+                                  InkWell(
+                                    onTap: () {
+                                      if (quantity > 1)
+                                        setState(() => quantity--);
+                                    },
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.white,
+                                        border: Border.all(
+                                          color: Colors.grey.shade300,
+                                        ),
+                                      ),
+                                      child: const Icon(
+                                        Icons.remove,
+                                        size: 18,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ),
+
+                                  const SizedBox(width: 14),
+
+                                  AnimatedSwitcher(
+                                    duration: Duration(milliseconds: 300),
+                                    transitionBuilder: (child, animation) {
+                                      return ScaleTransition(
+                                        scale: animation,
+                                        child: child,
+                                      );
+                                    },
+
+                                    child: Text(
+                                      key: ValueKey(quantity),
+                                      quantity.toString(),
+                                      style: AppTextStyles.bold.copyWith(
+                                        fontSize: 18,
+                                        color: const Color(0xFFC19375),
+                                      ),
+                                    ),
+                                  ),
+
+                                  const SizedBox(width: 14),
+
+                                  InkWell(
+                                    onTap: () {
+                                      setState(() => quantity++);
+                                    },
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.white,
+                                        border: Border.all(
+                                          color: Colors.grey.shade300,
+                                        ),
+                                      ),
+                                      child: const Icon(
+                                        Icons.add,
+                                        size: 18,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 10),
+
+                        const Text(
+                          'Select Size',
+                          style: TextStyle(
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                             fontFamily: 'Inter',
                           ),
                         ),
-                        Text(
-                          widget.product['price'] ?? '0',
-                          style: const TextStyle(
-                            fontSize: 22,
+                        const SizedBox(height: 8),
+                        Row(
+                          children: ['S', 'M', 'L', 'XL', 'XXL'].map((size) {
+                            final bool isSelected = selectedSize == size;
+                            double sizepadding;
+                            if (size == 'XL') {
+                              sizepadding = 15;
+                            } else if (size == 'XXL') {
+                              sizepadding = 10;
+                            } else {
+                              sizepadding = 20;
+                            }
+                            return GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  selectedSize = size;
+                                });
+                              },
+                              child: Container(
+                                margin: EdgeInsets.only(right: 8),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: sizepadding,
+
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? Colors.red
+                                        : Colors.grey.shade300,
+                                  ),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  size,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontFamily: 'Inter',
+                                    fontWeight: isSelected
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                    color: isSelected
+                                        ? Colors.red
+                                        : Colors.black,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        const Text(
+                          'Select Color',
+                          style: TextStyle(
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
+                            fontFamily: 'Inter',
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            _colorDot(Colors.black),
+                            _colorDot(Colors.blue),
+                            _colorDot(Colors.red),
+                            _colorDot(Colors.green),
+                            _colorDot(Colors.orange),
+                          ],
+                        ),
+
+                        const SizedBox(height: 25),
+
+                        const Text(
+                          'Description',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Inter',
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          widget.product['description'] ??
+                              'Stay comfortable all day with our 100% premium cotton t-shirt. '
+                                  'Designed with a slim fit and breathable fabric, perfect for daily wear. '
+                                  'Pair it with jeans, joggers, or shorts for a stylish casual look.',
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w400,
                             fontFamily: 'Inter',
                             color: Colors.black87,
+                            height: 1.5,
                           ),
                         ),
+
+                        const SizedBox(height: 100),
                       ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      widget.product['category'] ?? 'Men T-shirt',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.grey,
-                        fontFamily: 'Inter',
-                      ),
+                  ),
+                ),
+              ],
+            ),
+            if (showFlyingimage)
+              AnimatedBuilder(
+                animation: controller,
+                builder: (context, value) {
+                  return Positioned(
+                    left: xAnimation.value,
+                    top: yAnimation.value,
+                    child: Transform.scale(
+                      scale: scaleAnimation.value,
+                      child: value,
                     ),
-
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Text(
-                          'Qty',
-                          style: AppTextStyles.semiBold.copyWith(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 20,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(14),
-                            color: Colors.grey.shade100,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.shade300,
-                                blurRadius: 4,
-                                offset: const Offset(2, 2),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              InkWell(
-                                onTap: () {
-                                  if (quantity > 1) setState(() => quantity--);
-                                },
-                                borderRadius: BorderRadius.circular(10),
-                                child: Container(
-                                  padding: const EdgeInsets.all(6),
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.white,
-                                    border: Border.all(
-                                      color: Colors.grey.shade300,
-                                    ),
-                                  ),
-                                  child: const Icon(
-                                    Icons.remove,
-                                    size: 18,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                              ),
-
-                              const SizedBox(width: 14),
-
-                              AnimatedSwitcher(
-                                duration: Duration(milliseconds: 300),
-                                transitionBuilder: (child, animation) {
-                                  return ScaleTransition(
-                                    scale: animation,
-                                    child: child,
-                                  );
-                                },
-
-                                child: Text(
-                                  key: ValueKey(quantity),
-                                  quantity.toString(),
-                                  style: AppTextStyles.bold.copyWith(
-                                    fontSize: 18,
-                                    color: const Color(0xFFC19375),
-                                  ),
-                                ),
-                              ),
-
-                              const SizedBox(width: 14),
-
-                              InkWell(
-                                onTap: () {
-                                  setState(() => quantity++);
-                                },
-                                borderRadius: BorderRadius.circular(10),
-                                child: Container(
-                                  padding: const EdgeInsets.all(6),
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.white,
-                                    border: Border.all(
-                                      color: Colors.grey.shade300,
-                                    ),
-                                  ),
-                                  child: const Icon(
-                                    Icons.add,
-                                    size: 18,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 10),
-
-                    const Text(
-                      'Select Size',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'Inter',
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: ['S', 'M', 'L', 'XL', 'XXL'].map((size) {
-                        final bool isSelected = selectedSize == size;
-                        double sizepadding;
-                        if (size == 'XL') {
-                          sizepadding = 15;
-                        } else if (size == 'XXL') {
-                          sizepadding = 10;
-                        } else {
-                          sizepadding = 20;
-                        }
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              selectedSize = size;
-                            });
-                          },
-                          child: Container(
-                            margin: EdgeInsets.only(right: 8),
-                            padding: EdgeInsets.symmetric(
-                              horizontal: sizepadding,
-
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: isSelected
-                                    ? Colors.red
-                                    : Colors.grey.shade300,
-                              ),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              size,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontFamily: 'Inter',
-                                fontWeight: isSelected
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                                color: isSelected ? Colors.red : Colors.black,
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    const Text(
-                      'Select Color',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'Inter',
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        _colorDot(Colors.black),
-                        _colorDot(Colors.blue),
-                        _colorDot(Colors.red),
-                        _colorDot(Colors.green),
-                        _colorDot(Colors.orange),
-                      ],
-                    ),
-
-                    const SizedBox(height: 25),
-
-                    const Text(
-                      'Description',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'Inter',
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      widget.product['description'] ??
-                          'Stay comfortable all day with our 100% premium cotton t-shirt. '
-                              'Designed with a slim fit and breathable fabric, perfect for daily wear. '
-                              'Pair it with jeans, joggers, or shorts for a stylish casual look.',
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w400,
-                        fontFamily: 'Inter',
-                        color: Colors.black87,
-                        height: 1.5,
-                      ),
-                    ),
-
-                    const SizedBox(height: 100),
-                  ],
+                  );
+                },
+                child: Image.network(
+                  widget.product['image'],
+                  width: 80,
+                  height: 80,
+                  fit: BoxFit.cover,
                 ),
               ),
-            ),
           ],
         ),
       ),
@@ -355,6 +417,7 @@ class _ProductState extends State<Product> {
                     'size': selectedSize,
                     'color': selectedColor.value,
                   });
+                  startAnimation();
 
                   setState(() {
                     iscart = true;
