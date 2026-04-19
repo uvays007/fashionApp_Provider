@@ -27,20 +27,49 @@ class _ProductState extends State<Product> with SingleTickerProviderStateMixin {
   late Animation<double> scaleAnimation;
 
   bool showFlyingimage = false;
+  final GlobalKey cartkey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
+
     controller = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 800),
+      duration: Duration(milliseconds: 1200),
     );
-    xAnimation = Tween(begin: 150.0, end: 320.0).animate(controller);
-    yAnimation = Tween(
-      begin: 300.0,
-      end: 60.0,
-    ).animate(CurvedAnimation(parent: controller, curve: Curves.easeInOut));
 
-    scaleAnimation = Tween(begin: 1.0, end: 0.2).animate(controller);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final size = MediaQuery.of(context).size;
+
+      xAnimation = Tween(
+        begin: (size.width / 2) - 35,
+        end: size.width - 40, // avoid going out of screen
+      ).animate(CurvedAnimation(parent: controller, curve: Curves.bounceIn));
+
+      yAnimation = Tween(
+        begin: 180.0,
+        end: 0.0 - 65,
+      ).animate(CurvedAnimation(parent: controller, curve: Curves.bounceIn));
+
+      scaleAnimation = TweenSequence<double>([
+        TweenSequenceItem<double>(
+          tween: Tween<double>(
+            begin: 1,
+            end: 1.3,
+          ).chain(CurveTween(curve: Curves.elasticOut)),
+          weight: 20,
+        ),
+        TweenSequenceItem<double>(
+          tween: Tween<double>(
+            begin: 1.3,
+            end: 0.0,
+          ).chain(CurveTween(curve: Curves.easeIn)),
+          weight: 80,
+        ),
+      ]).animate(controller);
+
+      setState(() {}); // rebuild after assigning animations
+    });
   }
 
   @override
@@ -52,30 +81,40 @@ class _ProductState extends State<Product> with SingleTickerProviderStateMixin {
   void startAnimation() {
     setState(() {
       showFlyingimage = true;
-      controller.forward();
+
+      controller.forward(from: 0).whenComplete(() {
+        setState(() {
+          showFlyingimage = false;
+        });
+      });
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: Icon(Icons.shopping_cart, size: 33),
-          ),
-        ],
-        backgroundColor: const Color(0xFFC19375),
-        foregroundColor: Colors.white,
-      ),
-
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Stack(
           children: [
             Column(
               children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      icon: Icon(Icons.arrow_back),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.shopping_cart, color: Color(0xFFC19375)),
+                      iconSize: 27,
+                      onPressed: () {},
+                    ),
+                  ],
+                ),
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -355,13 +394,13 @@ class _ProductState extends State<Product> with SingleTickerProviderStateMixin {
             if (showFlyingimage)
               AnimatedBuilder(
                 animation: controller,
-                builder: (context, value) {
+                builder: (context, child) {
                   return Positioned(
                     left: xAnimation.value,
                     top: yAnimation.value,
                     child: Transform.scale(
                       scale: scaleAnimation.value,
-                      child: value,
+                      child: child,
                     ),
                   );
                 },
@@ -420,7 +459,7 @@ class _ProductState extends State<Product> with SingleTickerProviderStateMixin {
                   startAnimation();
 
                   setState(() {
-                    iscart = true;
+                    iscart = false;
                   });
 
                   ScaffoldMessenger.of(context).showSnackBar(
